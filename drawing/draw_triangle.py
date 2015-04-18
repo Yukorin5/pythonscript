@@ -1,5 +1,5 @@
-!/usr/bin/env python
- -*- coding: utf-8 -*-  #Change encoding.
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-  #Change encoding.
 
 from turtle import * #図形を描写する前の「おまじない」
 
