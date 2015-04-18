@@ -7,3 +7,4 @@ left(120) #120°回転する
 forward(100)
 left(120)
 forward(100)
+#何もしないでEnterキーで終了
