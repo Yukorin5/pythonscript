@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 
 if len(sys.argv) <= 1:
-    print("usage: {} FOLDER_NAMES".format(sys.argv[0]))
+    print "usage: {} FOLDER_NAMES".format(sys.argv[0])
     exit()
 
 workdir = sys.argv[1]
