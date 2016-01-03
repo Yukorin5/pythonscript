@@ -19,12 +19,19 @@ workdirs = sys.argv[1:]
 
 fns = []
 
+pngdirs = []
+
 # list all files in the workdir.
 for workdir in workdirs:
     for root, dirnames, filenames in os.walk(workdir):
         for fn in filenames:
             if re.search('\.fits$', fn):
-                fns.append(workdir + '/' +fn)
+                fns.append(root + '/' +fn)
+                if root not in pngdirs:
+                    pngdirs.append(root)
+
+pngdirs = sorted(pngdirs)
+print "pngdirs:", pngdirs
 
 # sort the files alphabetically.
 fns =  sorted(fns)
@@ -53,5 +60,5 @@ for fn in fns:
 
 print "creating animation."
 
-target_file_patterns = [dir + '/*.png' for dir in workdirs]
+target_file_patterns = [dir + '/*.png' for dir in pngdirs]
 system_call('convert -loop 1 -delay 20 {} aia.mpeg'.format(' '.join(target_file_patterns)))
