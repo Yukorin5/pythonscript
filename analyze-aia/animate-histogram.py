@@ -7,6 +7,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
 
+if len(sys.argv) <= 1:
+    print("usage: {} FOLDER_NAMES".format(sys.argv[0]))
+    exit()
+
 workdir = sys.argv[1]
 
 # list all files in the workdir.
@@ -40,8 +44,9 @@ for fn in fns:
 
     one_frame = plt.hist(img.flat, range(0,20000,200), log = True, color='blue')
     ax.set_title(fn)
+    ax.set_xlim([0,20000])
     plt.savefig(pngfn, dpi=100)
     plt.close('all')
 
 print "creating animation."
-subprocess.call('convert -loop 1 -delay 20 {}/*.png aia.gif'.format(workdir),shell = True)
+subprocess.call('convert -loop 1 -delay 20 {}/*.png aia.mpeg'.format(workdir),shell = True)
