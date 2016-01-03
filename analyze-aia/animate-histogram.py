@@ -47,6 +47,7 @@ for fn in fns:
     one_frame = plt.hist(img.flat, range(0,20000,200), log = True, color='blue')
     ax.set_title(fn)
     ax.set_xlim([0,20000])
+    ax.set_xlim([1,1e8])
     plt.savefig(pngfn, dpi=100)
     plt.close('all')
 
