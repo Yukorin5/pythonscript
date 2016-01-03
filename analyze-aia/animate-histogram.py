@@ -7,22 +7,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
 
+def system_call(cmd):
+    print cmd
+    subprocess.call(cmd, shell = True)
+
 if len(sys.argv) <= 1:
     print "usage: {} FOLDER_NAMES".format(sys.argv[0])
     exit()
 
-workdir = sys.argv[1]
-
-# list all files in the workdir.
-allfns = os.listdir(workdir)
+workdirs = sys.argv[1:]
 
 fns = []
 
-# append filenames to list variable fns,
-for fn in allfns:
-    # for only fn that ends with '.fits' .
-    if re.search('\.fits$', fn):
-        fns.append(workdir + '/' +fn)
+# list all files in the workdir.
+for workdir in workdirs:
+    for root, dirnames, filenames in os.walk(workdir):
+        for fn in filenames:
+            if re.search('\.fits$', fn):
+                fns.append(workdir + '/' +fn)
 
 # sort the files alphabetically.
 fns =  sorted(fns)
@@ -49,4 +51,6 @@ for fn in fns:
     plt.close('all')
 
 print "creating animation."
-subprocess.call('convert -loop 1 -delay 20 {}/*.png aia.mpeg'.format(workdir),shell = True)
+
+target_file_patterns = [dir + '/*.png' for dir in workdirs]
+system_call('convert -loop 1 -delay 20 {} aia.mpeg'.format(' '.join(target_file_patterns)))
