@@ -19,9 +19,43 @@ system_call('mkdir -p ' + pngdir)
 system_call('rm {}/*'.format(pngdir))
 
 
+time_begin = time.Time("2013-11-03 00:00:00").datetime
+time_end = time.Time("2013-11-13 00:00:00").datetime
+fn = "g15_xrs_1m_20131101_20131130.csv"
 
-time_begin = time.Time("2013-11-01 00:00:00").datetime
-time_end = time.Time("2013-11-01 02:00:00").datetime
+goes_xs = []
+goes_ys = []
+
+with (open(fn, "r")) as fp:
+    while True:
+        con = fp.readline()
+        if con[0:5]=='data:':
+            break
+    fp.readline()
+
+    while True:
+        con = fp.readline()
+        if con=='':
+            break
+        ws = con.split(',')
+        t = time.Time(ws[0]).datetime
+        goes_xs.append(t)
+        goes_ys.append(float(ws[6]))
+
+
+def cut_goes(t):
+    aday = datetime.timedelta(seconds=86400)
+    t0 = t - aday
+    t1 = t + aday
+    xs = []
+    ys = []
+    for i in range(len(goes_xs)):
+        tpp = goes_xs[i]
+        if t0 <= tpp and tpp <= t1:
+            xs.append(goes_xs[i])
+            ys.append(goes_ys[i])
+    return (xs,ys)
+
 dt = datetime.timedelta(seconds=720)
 t = time_begin-dt
 while t <= time_end:
@@ -43,12 +77,39 @@ while t <= time_end:
 
     # adjust the pixel luminosity with the exposure time.
     img = h[1].data / exptime
-    fig,ax = plt.subplots()
 
-    one_frame = plt.hist(img.flat, range(0,20000,200), log = True, color='blue')
+    plt.rcParams['figure.figsize'] = (12.0,6.0)
+
+    # plot AIA histogram
+    f,axs = plt.subplots(2)
+    ax=axs[0]
+    one_frame = ax.hist(img.flat, range(0,20000,200), log = True, color='blue')
     ax.set_title(fn)
     ax.set_xlim([0,20000])
     ax.set_ylim([1,1e8])
+
+    # plot GOES flux
+    ax=axs[1]
+    ax.set_yscale('log')
+
+    xs, ys = cut_goes(t)
+    ax.plot(xs, ys, 'r')
+
+    days    = mdates.DayLocator()  # every day
+    daysFmt = mdates.DateFormatter('%Y-%m-%d')
+    hours   = mdates.HourLocator()
+    ax.xaxis.set_major_locator(days)
+    ax.xaxis.set_major_formatter(daysFmt)
+    ax.xaxis.set_minor_locator(hours)
+    ax.grid()
+    f.autofmt_xdate()
+    ax.set_title('GOES Flux')
+    ax.set_xlabel('International Atomic Time')
+    ax.set_ylabel(u'GOES Long[1-8Å] Xray Flux')
+
+
+
+    # generate image
     plt.savefig(pngfn, dpi=100)
     plt.close('all')
 
