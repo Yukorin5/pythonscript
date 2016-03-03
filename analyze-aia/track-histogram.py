@@ -1,43 +1,37 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import math, random, os, sys, re, subprocess
+import astropy.time as time
+import math, random, os, sys, re, subprocess, datetime
 import matplotlib as mpl
 mpl.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from astropy.io import fits
 
 def system_call(cmd):
     print cmd
     subprocess.call(cmd, shell = True)
 
-if len(sys.argv) <= 1:
-    print "usage: {} FOLDER_NAMES".format(sys.argv[0])
-    exit()
+pngdir = 'frames'
+system_call('mkdir -p ' + pngdir)
+system_call('rm {}/*'.format(pngdir))
 
-workdirs = sys.argv[1:]
 
-fns = []
 
-pngdirs = []
+time_begin = time.Time("2013-11-01 00:00:00").datetime
+time_end = time.Time("2013-11-01 02:00:00").datetime
+dt = datetime.timedelta(seconds=720)
+t = time_begin-dt
+while t <= time_end:
+    t += dt
 
-# list all files in the workdir.
-for workdir in workdirs:
-    for root, dirnames, filenames in os.walk(workdir):
-        for fn in filenames:
-            if re.search('\.fits$', fn):
-                fns.append(root + '/' +fn)
-                if root not in pngdirs:
-                    pngdirs.append(root)
+    fn=t.strftime('%Y/%m/%d/%H%M.fits')
+    if not(os.path.exists(fn)):
+        continue
 
-pngdirs = sorted(pngdirs)
-print "pngdirs:", pngdirs
-
-# sort the files alphabetically.
-fns =  sorted(fns)
-
-for fn in fns:
-    pngfn = re.sub('\.fits$', '.png', fn)
+    pngfn = pngdir + '/' + fn.replace('.fits', '.png').replace('/','-')
     print "plotting histogram: ", fn , '->' , pngfn
 
     h = fits.open(fn)
@@ -54,11 +48,11 @@ for fn in fns:
     one_frame = plt.hist(img.flat, range(0,20000,200), log = True, color='blue')
     ax.set_title(fn)
     ax.set_xlim([0,20000])
-    ax.set_xlim([1,1e8])
+    ax.set_ylim([1,1e8])
     plt.savefig(pngfn, dpi=100)
     plt.close('all')
 
+
 print "creating animation."
 
-target_file_patterns = [dir + '/*.png' for dir in pngdirs]
-system_call('convert -loop 1 -delay 20 {} aia.mpeg'.format(' '.join(target_file_patterns)))
+system_call('convert -loop 1 -delay 20 {}/*.png aia.gif'.format(pngdir))
