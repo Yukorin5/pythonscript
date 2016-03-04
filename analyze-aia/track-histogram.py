@@ -84,7 +84,7 @@ while t <= time_end:
     f,axs = plt.subplots(2)
     ax=axs[0]
     one_frame = ax.hist(img.flat, range(0,20000,200), log = True, color='blue')
-    ax.set_title(fn)
+    ax.set_title('AIA(193) Pixel Brightness Histogram at ' + fn.replace('.fits', ''))
     ax.set_xlim([0,20000])
     ax.set_ylim([1,1e8])
 
@@ -116,4 +116,4 @@ while t <= time_end:
 
 print "creating animation."
 
-system_call('convert -loop 1 -delay 20 {}/*.png aia.gif'.format(pngdir))
+system_call('convert -loop 1 -delay 20 {}/*.png aia.mp4'.format(pngdir))
