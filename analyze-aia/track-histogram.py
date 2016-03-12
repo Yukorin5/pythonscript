@@ -20,7 +20,7 @@ system_call('rm {}/*'.format(pngdir))
 
 
 time_begin = time.Time("2013-11-03 00:00:00").datetime
-time_end = time.Time("2013-11-03 01:00:00").datetime
+time_end = time.Time("2013-11-13 00:00:00").datetime
 fn = "g15_xrs_1m_20131101_20131130.csv"
 
 goes_xs = []
