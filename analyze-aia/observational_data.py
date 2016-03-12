@@ -11,11 +11,11 @@ def cmd(str):
 
 def aia193(t):
     ymd = t.strftime('%Y/%m/%d')
-    datapath = "data/aia193/" + ymd
-    fn=datapath + t.strftime('/%H%M.fits')
+    data_path = "data/aia193/" + ymd
+    fn=data_path + t.strftime('/%H%M.fits')
 
     if not(os.path.exists(data_path)):
-        cmd('aws s3 sync s3://sdo/aia193/720s/{}/ {}/ --region=us-west-2'.format(ymd,datapath))
+        cmd('aws s3 sync s3://sdo/aia193/720s/{}/ {}/ --region=us-west-2'.format(ymd,data_path))
     if not(os.path.exists(fn)):
         return None
 
