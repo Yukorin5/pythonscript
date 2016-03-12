@@ -8,6 +8,8 @@ mpl.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import observational_data as obs
+
 from astropy.io import fits
 
 def cmd(str):
@@ -20,9 +22,9 @@ cmd('mkdir -p ' + pngdir)
 cmd('rm {}/*'.format(pngdir))
 
 
-time_begin = time.Time("2013-11-03 00:00:00").datetime
-time_end = time.Time("2013-11-13 00:00:00").datetime
-fn = "g15_xrs_1m_20131101_20131130.csv"
+time_begin = time.Time("2014-10-24 00:00:00").datetime
+time_end = time.Time("2013-10-24 02:00:00").datetime
+fn = "g15_xrs_1m_20141001_20141031.csv"
 
 goes_xs = []
 goes_ys = []
@@ -72,23 +74,9 @@ dt = datetime.timedelta(seconds=720)
 t = time_begin-dt
 while t <= time_end:
     t += dt
-
-    fn=t.strftime('data/%Y/%m/%d/%H%M.fits')
-    if not(os.path.exists(fn)):
-        continue
-
-    pngfn = pngdir + '/' + fn.replace('.fits', '.png').replace('/','-')
-    print "plotting histogram: ", fn , '->' , pngfn
-
-    h = fits.open(fn)
-    h[1].verify('fix')
-    exptime = h[1].header['EXPTIME']
-    if exptime <=0:
-        print "Warning: non-positive EXPTIME: ", h[1].header['EXPTIME']
-        exptime = 2.0
-
-    # adjust the pixel luminosity with the exposure time.
-    img = h[1].data / exptime
+    pngfn = pngdir + '/' + t.strftime('%Y-%m-%d-%H%M.png')
+    print "plotting histogram: ", pngfn
+    img = obs.aia193(t)
 
     plt.rcParams['figure.figsize'] = (12.0,6.0)
 
