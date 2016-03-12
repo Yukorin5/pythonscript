@@ -10,13 +10,14 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from astropy.io import fits
 
-def system_call(cmd):
-    print cmd
-    subprocess.call(cmd, shell = True)
+def cmd(str):
+    print str
+    subprocess.call(str, shell = True)
+
 
 pngdir = 'frames'
-system_call('mkdir -p ' + pngdir)
-system_call('rm {}/*'.format(pngdir))
+cmd('mkdir -p ' + pngdir)
+cmd('rm {}/*'.format(pngdir))
 
 
 time_begin = time.Time("2013-11-03 00:00:00").datetime
@@ -72,7 +73,7 @@ t = time_begin-dt
 while t <= time_end:
     t += dt
 
-    fn=t.strftime('%Y/%m/%d/%H%M.fits')
+    fn=t.strftime('data/%Y/%m/%d/%H%M.fits')
     if not(os.path.exists(fn)):
         continue
 
@@ -128,4 +129,4 @@ while t <= time_end:
 
 print "creating animation."
 
-system_call('convert -loop 1 -delay 20 {}/*.png aia.mp4'.format(pngdir))
+cmd('convert -loop 1 -delay 20 {}/*.png aia.mp4'.format(pngdir))
