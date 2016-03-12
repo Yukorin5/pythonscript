@@ -23,8 +23,8 @@ cmd('rm {}/*'.format(pngdir))
 
 
 time_begin = time.Time("2014-10-24 00:00:00").datetime
-time_end = time.Time("2013-10-24 02:00:00").datetime
-fn = "g15_xrs_1m_20141001_20141031.csv"
+time_end = time.Time("2014-10-24 02:00:00").datetime
+fn = "data/goes/g15_xrs_1m_20141001_20141031.csv"
 
 goes_xs = []
 goes_ys = []

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # module for loading observational data.
 
-import datetime
+import datetime, os, subprocess
+from astropy.io import fits
 
 def cmd(str):
     print str
@@ -10,7 +11,7 @@ def cmd(str):
 
 def aia193(t):
     ymd = t.strftime('%Y/%m/%d')
-    datapath = "data/" + ymd
+    datapath = "data/aia193/" + ymd
     fn=datapath + t.strftime('/%H%M.fits')
 
     if not(os.path.exists(data_path)):
