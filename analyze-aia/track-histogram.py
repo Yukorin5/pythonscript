@@ -20,7 +20,7 @@ system_call('rm {}/*'.format(pngdir))
 
 
 time_begin = time.Time("2013-11-03 00:00:00").datetime
-time_end = time.Time("2013-11-13 00:00:00").datetime
+time_end = time.Time("2013-11-03 01:00:00").datetime
 fn = "g15_xrs_1m_20131101_20131130.csv"
 
 goes_xs = []
@@ -43,18 +43,29 @@ with (open(fn, "r")) as fp:
         goes_ys.append(float(ws[6]))
 
 
+global cutted_xs, cutted_ys, cutted_i
+cutted_xs = []
+cutted_ys = []
+cutted_i = 0
+# return the goes light curve from (t - 1day, t + 1day)
 def cut_goes(t):
+    global cutted_xs, cutted_ys, cutted_i
     aday = datetime.timedelta(seconds=86400)
     t0 = t - aday
     t1 = t + aday
-    xs = []
-    ys = []
-    for i in range(len(goes_xs)):
-        tpp = goes_xs[i]
-        if t0 <= tpp and tpp <= t1:
-            xs.append(goes_xs[i])
-            ys.append(goes_ys[i])
-    return (xs,ys)
+    while len(cutted_xs)>0 and cutted_xs[0] < t0:
+        cutted_xs=cutted_xs[1:]
+        cutted_ys=cutted_ys[1:]
+
+    while cutted_i < len(goes_xs):
+        tpp = goes_xs[cutted_i]
+        if tpp <= t1:
+            cutted_xs.append(goes_xs[cutted_i])
+            cutted_ys.append(goes_ys[cutted_i])
+            cutted_i+=1
+        else:
+            break
+    return (cutted_xs,cutted_ys)
 
 dt = datetime.timedelta(seconds=720)
 t = time_begin-dt
@@ -94,6 +105,7 @@ while t <= time_end:
 
     xs, ys = cut_goes(t)
     ax.plot(xs, ys, 'r')
+    ax.plot([t, t], [1e-7, 1e-4], color='k', linestyle='-', linewidth=2)
 
     days    = mdates.DayLocator()  # every day
     daysFmt = mdates.DateFormatter('%Y-%m-%d')
