@@ -56,9 +56,6 @@ def cut_goes(t):
     aday = datetime.timedelta(seconds=86400)
     t0 = t - aday
     t1 = t + aday
-    while len(cutted_xs)>0 and cutted_xs[0] < t0:
-        cutted_xs=cutted_xs[1:]
-        cutted_ys=cutted_ys[1:]
 
     while cutted_i < len(goes_xs):
         tpp = goes_xs[cutted_i]
@@ -68,6 +65,11 @@ def cut_goes(t):
             cutted_i+=1
         else:
             break
+
+    while len(cutted_xs)>0 and cutted_xs[0] < t0:
+        cutted_xs=cutted_xs[1:]
+        cutted_ys=cutted_ys[1:]
+
     return (cutted_xs,cutted_ys)
 
 dt = datetime.timedelta(seconds=720)
@@ -77,6 +79,9 @@ while t <= time_end:
     pngfn = pngdir + '/' + t.strftime('%Y-%m-%d-%H%M.png')
     print "plotting histogram: ", pngfn
     img = obs.aia193(t)
+
+    if img is None:
+        continue
 
     plt.rcParams['figure.figsize'] = (12.0,6.0)
 
