@@ -24,53 +24,26 @@ cmd('rm {}/*'.format(pngdir))
 
 time_begin = time.Time("2014-10-24 00:00:00").datetime
 time_end = time.Time("2014-10-24 02:00:00").datetime
-fn = "data/goes/g15_xrs_1m_20141001_20141031.csv"
 
-goes_xs = []
-goes_ys = []
+def cut_goes(t0):
+    xs = []
+    ys = []
+    for i in range(-86400, 86400, 60):
+        t = t0 + datetime.timedelta(seconds=i)
+        xs.append(t)
+        ys.append(obs.goes(t))
+    return (xs,ys)
 
-with (open(fn, "r")) as fp:
-    while True:
-        con = fp.readline()
-        if con[0:5]=='data:':
-            break
-    fp.readline()
+# return goes one-day future max lightcurve
+def goes_1day_futuremax(t0):
+    xs = []
+    ys = []
+    for i in range(-86400, 86400, 60):
+        t = t0 + datetime.timedelta(seconds=i)
+        xs.append(t)
+        ys.append(obs.goes_max(t ,  datetime.timedelta(days=1) ))
+    return (xs,ys)
 
-    while True:
-        con = fp.readline()
-        if con=='':
-            break
-        ws = con.split(',')
-        t = time.Time(ws[0]).datetime
-        goes_xs.append(t)
-        goes_ys.append(float(ws[6]))
-
-
-global cutted_xs, cutted_ys, cutted_i
-cutted_xs = []
-cutted_ys = []
-cutted_i = 0
-# return the goes light curve from (t - 1day, t + 1day)
-def cut_goes(t):
-    global cutted_xs, cutted_ys, cutted_i
-    aday = datetime.timedelta(seconds=86400)
-    t0 = t - aday
-    t1 = t + aday
-
-    while cutted_i < len(goes_xs):
-        tpp = goes_xs[cutted_i]
-        if tpp <= t1:
-            cutted_xs.append(goes_xs[cutted_i])
-            cutted_ys.append(goes_ys[cutted_i])
-            cutted_i+=1
-        else:
-            break
-
-    while len(cutted_xs)>0 and cutted_xs[0] < t0:
-        cutted_xs=cutted_xs[1:]
-        cutted_ys=cutted_ys[1:]
-
-    return (cutted_xs,cutted_ys)
 
 dt = datetime.timedelta(seconds=720)
 t = time_begin-dt
@@ -89,7 +62,7 @@ while t <= time_end:
     f,axs = plt.subplots(2)
     ax=axs[0]
     one_frame = ax.hist(img.flat, range(0,20000,200), log = True, color='blue')
-    ax.set_title('AIA(193) Pixel Brightness Histogram at ' + fn.replace('.fits', ''))
+    ax.set_title('AIA(193) Pixel Brightness Histogram at ' + t.strftime('%Y-%m-%d %H:%M'))
     ax.set_xlim([0,20000])
     ax.set_ylim([1,1e8])
 
@@ -98,8 +71,16 @@ while t <= time_end:
     ax.set_yscale('log')
 
     xs, ys = cut_goes(t)
-    ax.plot(xs, ys, 'r')
-    ax.plot([t, t], [1e-7, 1e-4], color='k', linestyle='-', linewidth=2)
+    ax.plot(xs, ys, 'b')
+
+    xs, ys = goes_1day_futuremax(t)
+    ax.plot(xs, ys, color='b', linestyle='--')
+
+
+    ax.plot([t, t], [1e-7, 1e-3], color='k', linestyle='-', linewidth=2)
+
+
+
 
     days    = mdates.DayLocator()  # every day
     daysFmt = mdates.DateFormatter('%Y-%m-%d')

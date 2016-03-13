@@ -5,8 +5,6 @@ import astropy.time as time
 import observational_data as obs
 import datetime
 
-
-
 t = time.Time("2014-10-22 00:00:00").datetime
 
 print obs.goes_max(t, datetime.timedelta(days=1))
