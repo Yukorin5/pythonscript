@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # module for loading observational data.
 
+import astropy.time as time
 import calendar, datetime, os, subprocess
 from astropy.io import fits
 
@@ -39,13 +40,13 @@ def goes(t0):
     day31 = calendar.monthrange(t0.year,t0.month)[1]
     fn = 'g15_xrs_1m_{y:4}{m:02}{d:02}_{y:4}{m:02}{d31:02}.csv'.format(y=t0.year, m=t0.month, d=01, d31=day31)
     localpath = 'data/goes/' + fn
-    if localpath in goes_loaded_files():
+    if localpath in goes_loaded_files:
         return None
 
-    if not(os.path.exist(localpath)):
-        url = 'http://satdat.ngdc.noaa.gov/sem/goes/data/new_avg/{y}/{m}/goes15/csv/'.format(y=t0.year, m=t0.month) + fn
+    if not(os.path.exists(localpath)):
+        url = 'http://satdat.ngdc.noaa.gov/sem/goes/data/new_avg/{y}/{m:02}/goes15/csv/'.format(y=t0.year, m=t0.month) + fn
         cmd('wget ' + url + ' -O ' + fn)
-    if not(os.path.exist(localpath)):
+    if not(os.path.exists(localpath)):
         return None
 
     goes_loaded_files.add(localpath)
@@ -65,3 +66,43 @@ def goes(t0):
             goes_raw_data[t] = float(ws[6])
 
     return goes(t)
+
+goes_max_epoch = time.Time("2000-01-01 00:00:00").datetime
+
+def goes_max(t, timedelta):
+    i = int((t - goes_max_epoch).total_seconds())
+    j = int((t - goes_max_epoch + timedelta).total_seconds())
+    start=min(i,j)
+    end  =max(i,j)
+    delta=1;
+    while delta < end:
+        delta*=2
+    return goes_max_for_secondrange(delta,start, end)
+
+global goes_max_for_secondrange_memo
+goes_max_for_secondrange_memo={}
+def goes_max_for_secondrange(delta, start ,end):
+    global goes_max_for_secondrange_memo
+
+    box0 = int(start + delta-1)/int(delta)
+    box1 = int(end)/int(delta)
+    key = (start,end)
+    if start >= end:
+        return None
+    if delta < 60:
+        t = goes_max_epoch + datetime.timedelta(seconds = (int(start)/60)*60)
+        return goes(t)
+    if key in goes_max_for_secondrange_memo:
+        return goes_max_for_secondrange_memo[key]
+
+    if box0 > box1:
+        return goes_max_for_secondrange(delta/2, start, end)
+    if box0 == box1:
+        return max(goes_max_for_secondrange(delta/2, start, box0*delta),
+                   goes_max_for_secondrange(delta/2, box0*delta, end))
+    bm_mid = goes_max_for_secondrange(delta/2, box0*delta, box1*delta)
+    goes_max_for_secondrange_memo[key]=bm_mid
+
+    return  max(goes_max_for_secondrange(delta/2, start, box0*delta),
+                bm_mid,
+                goes_max_for_secondrange(delta/2, box1*delta, end))
