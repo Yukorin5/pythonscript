@@ -84,12 +84,14 @@ goes_max_for_secondrange_memo={}
 def goes_max_for_secondrange(delta, start ,end):
     global goes_max_for_secondrange_memo
 
-    box0 = int(start + delta-1)/int(delta)
-    box1 = int(end)/int(delta)
+    box0 = delta*(int(start + delta-1)/int(delta))
+    box1 = delta*(int(end)/int(delta))
     key = (start,end)
+
+
     if start >= end:
         return None
-    if delta < 60:
+    if end-start < 60:
         t = goes_max_epoch + datetime.timedelta(seconds = (int(start)/60)*60)
         return goes(t)
     if key in goes_max_for_secondrange_memo:
@@ -98,11 +100,12 @@ def goes_max_for_secondrange(delta, start ,end):
     if box0 > box1:
         return goes_max_for_secondrange(delta/2, start, end)
     if box0 == box1:
-        return max(goes_max_for_secondrange(delta/2, start, box0*delta),
-                   goes_max_for_secondrange(delta/2, box0*delta, end))
-    bm_mid = goes_max_for_secondrange(delta/2, box0*delta, box1*delta)
-    goes_max_for_secondrange_memo[key]=bm_mid
+        return max(goes_max_for_secondrange(delta/2, start, box0),
+                   goes_max_for_secondrange(delta/2, box0, end))
+    bm_mid = max(goes_max_for_secondrange(delta/2, box0, box0+delta/2)
+                 ,goes_max_for_secondrange(delta/2, box0+delta/2, box1))
+    goes_max_for_secondrange_memo[(box0, box1)]=bm_mid
 
-    return  max(goes_max_for_secondrange(delta/2, start, box0*delta),
+    return  max(goes_max_for_secondrange(delta/2, start, box0),
                 bm_mid,
-                goes_max_for_secondrange(delta/2, box1*delta, end))
+                goes_max_for_secondrange(delta/2, box1, end))

@@ -7,10 +7,13 @@ import datetime
 
 
 
-t = time.Time("2014-10-24 00:00:00").datetime
+t = time.Time("2014-10-22 00:00:00").datetime
 
 print obs.goes_max(t, datetime.timedelta(days=1))
 print obs.goes_max(t, datetime.timedelta(days=2))
+print obs.goes_max(t, datetime.timedelta(days=3))
+print obs.goes_max(t, datetime.timedelta(days=4))
+print obs.goes_max(t, datetime.timedelta(days=5))
 
 for i in range(10):
     print t, obs.goes(t)
