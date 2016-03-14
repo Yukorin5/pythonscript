@@ -33,7 +33,6 @@ global goes_raw_data, goes_loaded_files
 goes_raw_data = {}
 goes_loaded_files = set()
 def goes(t0):
-    print goes_loaded_files
     global goes_raw_data, goes_loaded_files
     if t0 in goes_raw_data:
         return goes_raw_data[t0]
