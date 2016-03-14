@@ -33,6 +33,7 @@ global goes_raw_data, goes_loaded_files
 goes_raw_data = {}
 goes_loaded_files = set()
 def goes(t0):
+    print goes_loaded_files
     global goes_raw_data, goes_loaded_files
     if t0 in goes_raw_data:
         return goes_raw_data[t0]
@@ -45,7 +46,7 @@ def goes(t0):
 
     if not(os.path.exists(localpath)):
         url = 'http://satdat.ngdc.noaa.gov/sem/goes/data/new_avg/{y}/{m:02}/goes15/csv/'.format(y=t0.year, m=t0.month) + fn
-        cmd('wget ' + url + ' -O ' + fn)
+        cmd('wget ' + url + ' -O ' + localpath)
     if not(os.path.exists(localpath)):
         return None
 
