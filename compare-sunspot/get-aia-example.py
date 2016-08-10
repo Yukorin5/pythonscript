@@ -22,6 +22,8 @@ batch_days=3
 query = series_name + '[{}/{}d@720s]{}'.format(t_begin.strftime('%Y.%m.%d_%H:%M:%S'),batch_days,wavelnths)
 
 
-command = "./exportfile.csh '"+query+ "' " + args.mail_address
+command = "./exportfile_AIA.csh '"+query+ "' " + args.mail_address
 
 print command
+
+#  ./exportfile_AIA.csh 'hmi.M_720s[2015.05.09_00:00:00/3d@720s]' muranushi@gmail.com
