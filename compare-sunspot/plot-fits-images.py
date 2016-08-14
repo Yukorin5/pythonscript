@@ -38,21 +38,30 @@ for fn in sys.argv[1:]:
 
     #img.data = img.data / (img.exposure_time / u.second)
 
+    if img_type=='hmi':
+        pass
+    elif img_type=='aia193':
+        img.data = img.data / (img.exposure_time / u.second)
+    elif img_type=='aia94':
+        img.data = img.data / (img.exposure_time / u.second)
     print np.nanmin(img.data)
     print np.nanmax(img.data)
 
 
     #pylab.rcParams['figure.figsize'] = (6.4,6.4)
-    #pylab.clf()
+
+
+
     img.plot()
     plt.colorbar()
-
     if img_type=='hmi':
         plt.clim(-300,300)
+        plt.gca().invert_xaxis()
+        plt.gca().invert_yaxis()
     elif img_type=='aia193':
-        plt.clim(0,1000)
+        plt.clim(0,3000)
     elif img_type=='aia94':
-        plt.clim(0,1000)
+        plt.clim(0,100)
 
     plt.savefig(fnbody + '.png')
     plt.close('all')
