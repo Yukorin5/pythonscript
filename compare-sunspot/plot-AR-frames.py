@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import datetime, StringIO, urllib, sys, subprocess,os,math
+import datetime, StringIO, urllib, sys, subprocess,os,math,glob
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -39,7 +39,7 @@ elif ar_no == 12297:
     Ax = 850
     Ay = 120
     x0 = 0
-    y0 = -300
+    y0 = -180
     t0 = datetime.datetime(2015,3,13,1,22)
     data_path_head = "d-"
 else:
@@ -58,15 +58,15 @@ while True:
         fn ="{}hmi/hmi.M_720s.{}_TAI.6173.0.magnetogram.fits".format(
             data_path_head, t.strftime("%Y%m%d_%H%M%S"))
     elif img_type == "aia94":
-        fn = "{}aia/aia.lev1_euv_12s.{}03Z.94.image_lev1.fits".format(
+        fn = "{}aia/aia.lev1_euv_12s.{}??Z.94.image_lev1.fits".format(
             data_path_head, t.strftime("%Y-%m-%dT%H%M"))
     elif img_type == "aia193":
-        fn = "{}aia/aia.lev1_euv_12s.{}08Z.193.image_lev1.fits".format(
+        fn = "{}aia/aia.lev1_euv_12s.{}??Z.193.image_lev1.fits".format(
             data_path_head, t.strftime("%Y-%m-%dT%H%M"))
     else:
         print "unknown image type: ", fn
         exit(0)
-
+    fn = glob.glob(fn)[0]
 
 
     print "open file; " , fn
