@@ -18,7 +18,7 @@ img_type = sys.argv[1]
 ar_no = int(sys.argv[2])
 cadence = datetime.timedelta(seconds = int(sys.argv[3]))
 
-out_path = "f-{}-{}-{}/".format(img_type, ar_no, cadence.total_seconds())
+out_path = "f-{}-{}-{}/".format(img_type, ar_no, int(cadence.total_seconds()))
 subprocess.call(["mkdir", "-p", out_path])
 
 
@@ -46,7 +46,7 @@ else:
     print "unknown AR #", ar_no
     exit(1)
 
-t = t0 - cadence
+t = time_begin - cadence
 frame_ctr = -1
 while True:
     t += cadence
@@ -69,7 +69,7 @@ while True:
 
 
 
-
+    print "open file; " , fn
     fullmap = sunpy.map.Map(fn)
 
     length = 250 * u.arcsec
