@@ -74,8 +74,8 @@ while True:
 
     length = 250 * u.arcsec
     t_i = (t-t0).total_seconds()
-    x = u.arcsec * Ax * math.cos(omega * t_i + 1.5*math.pi) + x0
-    y = u.arcsec * Ay * math.cos(omega * t_i + 1.5*math.pi) + y0
+    x = u.arcsec * (Ax * math.cos(omega * t_i + 1.5*math.pi) + x0)
+    y = u.arcsec * (Ay * math.cos(omega * t_i + 1.5*math.pi) + y0)
 
     # Create a SunPy Map, and a second submap over the region of interest.
 
