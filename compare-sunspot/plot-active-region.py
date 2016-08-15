@@ -29,7 +29,17 @@ for fn in sys.argv[1:]:
         exit(0)
 
 
-    img = sunpy.map.Map(fn)
+    fullmap = sunpy.map.Map(fn)
+
+    length = 250 * u.arcsec
+    x0 = -700 * u.arcsec
+    y0 = -250 * u.arcsec
+
+    # Create a SunPy Map, and a second submap over the region of interest.
+
+    img = fullmap.submap(u.Quantity([x0 - length, x0 + length]),
+                         u.Quantity([y0 - length, y0 + length]))
+
 
     print img.data.shape
     print "dt = ", img.exposure_time
@@ -63,5 +73,5 @@ for fn in sys.argv[1:]:
     elif img_type=='aia94':
         plt.clim(0,100)
 
-    plt.savefig(fnbody + '.png')
+    plt.savefig(img_type + '.png')
     plt.close('all')
