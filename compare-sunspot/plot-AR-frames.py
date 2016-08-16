@@ -14,20 +14,22 @@ import matplotlib.pyplot as plt
 import sunpy.map
 
 
-viz_mode = True
+viz_mode = False
 
 img_type = sys.argv[1]
 ar_no = int(sys.argv[2])
 cadence = datetime.timedelta(seconds = int(sys.argv[3]))
 
-out_path = "f-{}-{}-{}/".format(img_type, ar_no, int(cadence.total_seconds()))
+
+mode_str = "" if viz_mode else "Ye"
+out_path = "{}-{}-{}-{}/".format(mode_str, img_type, ar_no, int(cadence.total_seconds()))
 subprocess.call(["mkdir", "-p", out_path])
 
 
 omega = 2 * math.pi  / 28 / 86400
 
 if ar_no == 12135:
-    time_begin=datetime.datetime(2014,8,5)
+    time_begin=datetime.datetime(2014,8,11)
     time_end=datetime.datetime(2014,8,19)
     Ax = 900
     Ay = 100
@@ -36,8 +38,8 @@ if ar_no == 12135:
     t0 = datetime.datetime(2014,8,11,15,46)
     data_path_head = "b-"
 elif ar_no == 12297:
-    time_begin=datetime.datetime(2015,3,4)
-    time_end=datetime.datetime(2015,3,21)
+    time_begin=datetime.datetime(2015,3,9)
+    time_end=datetime.datetime(2015,3,17)
     Ax = 850
     Ay = 120
     x0 = 0
@@ -77,13 +79,18 @@ while True:
     fullmap = sunpy.map.Map(fn)
 
     length = 250 * u.arcsec
+    if viz_mode:
+        xlength=1.33* length
+    else:
+        xlength = length
+
     t_i = (t-t0).total_seconds()
     x = u.arcsec * (Ax * math.cos(omega * t_i + 1.5*math.pi) + x0)
     y = u.arcsec * (Ay * math.cos(omega * t_i + 1.5*math.pi) + y0)
 
     # Create a SunPy Map, and a second submap over the region of interest.
 
-    img = fullmap.submap(u.Quantity([x - 1.33*length, x + 1.33*length]),
+    img = fullmap.submap(u.Quantity([x - xlength, x + xlength]),
                          u.Quantity([y - length, y + length]))
 
 
