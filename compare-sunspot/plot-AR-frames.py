@@ -107,7 +107,7 @@ while True:
     img.plot()
     plt.colorbar()
     if img_type=='hmi':
-        plt.clim(-300,300)
+        plt.clim(-200,200)
         plt.gca().invert_xaxis()
         plt.gca().invert_yaxis()
     elif img_type=='aia193':
