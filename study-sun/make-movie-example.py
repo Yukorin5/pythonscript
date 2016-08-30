@@ -37,5 +37,6 @@ for i in range(60):
     plt.savefig(filename)
 
     filenames.append(filename)
+    plt.close('all')
 
 subprocess.call(['convert','-delay','3'] + filenames + ['example-movie.mp4'])
