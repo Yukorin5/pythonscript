@@ -15,10 +15,20 @@ from observational_data import *
 subprocess.call(['mkdir', '-p','frames'])
 
 filenames = []
+counter = 0
 
-for i in range(60):
-    t = datetime.datetime(2014,12,19,23,00) + datetime.timedelta(minutes=2*i)
+
+t = datetime.datetime(2014,12,18,00,00)
+
+
+while True:
+    t += datetime.timedelta(minutes=2)
+    if t > datetime.datetime(2014,12,21,00,00):
+        break
+
     img = get_aia_image(193, t)
+    if img is None:
+        continue
 
     print "image shape = ", img.data.shape
     print "exposure time = ", img.exposure_time
@@ -33,10 +43,11 @@ for i in range(60):
     img.plot()
     plt.colorbar()
     plt.clim(0,10000)
-    filename = t.strftime('frames/%Y-%m-%d-%H-%M.png')
+    filename = 'frames/{:08}.png'.format(counter)
+    counter+=1
     plt.savefig(filename)
 
     filenames.append(filename)
     plt.close('all')
 
-subprocess.call(['convert','-delay','3'] + filenames + ['example-movie.mp4'])
+subprocess.call('ffmpeg -r 24 -i frames/%08d.png -qscale 0 example-movie.mp4', shell=True)
