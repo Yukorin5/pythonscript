@@ -47,8 +47,8 @@ while True:
 aia_curve_t = []
 aia_curve_y = []
 
-time_begin = datetime.datetime(2013,11,05,06,00)
-time_end   = datetime.datetime(2013,11,05,12,00)
+#time_begin = datetime.datetime(2013,11,05,06,00)
+#time_end   = datetime.datetime(2013,11,05,12,00)
 
 t = time_begin
 while True:
@@ -65,7 +65,7 @@ while True:
     print t,aia_flux
 
     aia_curve_t.append(t)
-    aia_curve_y.append(y)
+    aia_curve_y.append(aia_flux)
     
 
 
@@ -83,7 +83,7 @@ for ax in axs:
     ax.xaxis.set_minor_locator(hours)
     ax.grid()
 
-ax=ax[0]
+ax=axs[0]
 
 ax.plot(goes_curve_t, goes_curve_y, 'b')
 ax.set_yscale('log')
@@ -94,10 +94,10 @@ ax.text(time_end, 5e-4, 'X-class', rotation=90)
 ax.text(time_end, 5e-5, 'M-class', rotation=90)
 ax.text(time_end, 5e-6, 'C-class', rotation=90)
 ax.text(time_end, 5e-7, 'B-class', rotation=90)
-ax.ylim([1e-7,1e-3])
+ax.set_ylim([1e-7,1e-3])
 
 
-ax=ax[1]
+ax=axs[1]
 ax.plot(aia_curve_t, aia_curve_y, 'r')
 ax.set_yscale('log')
 
