@@ -47,6 +47,9 @@ while True:
 aia_curve_t = []
 aia_curve_y = []
 
+time_begin = datetime.datetime(2013,11,05,06,00)
+time_end   = datetime.datetime(2013,11,05,12,00)
+
 t = time_begin
 while True:
     t += datetime.timedelta(minutes=2)
@@ -67,28 +70,38 @@ while True:
 
 
 
-fig, ax = plt.subplots()
-ax.set_yscale('log')
+plt.rcParams['figure.figsize'] = (8.0,12.0)
+
+
+fig, axs = plt.subplots(2,1,sharex=True)
+for ax in axs:
+    days    = mdates.DayLocator()  # every day
+    daysFmt = mdates.DateFormatter('%Y-%m-%d')
+    hours   = mdates.HourLocator()
+    ax.xaxis.set_major_locator(days)
+    ax.xaxis.set_major_formatter(daysFmt)
+    ax.xaxis.set_minor_locator(hours)
+    ax.grid()
+
+ax=ax[0]
 
 ax.plot(goes_curve_t, goes_curve_y, 'b')
-ax.plot(aia_curve_t, aia_curve_y, 'r')
-
-
-days    = mdates.DayLocator()  # every day
-daysFmt = mdates.DateFormatter('%Y-%m-%d')
-hours   = mdates.HourLocator()
-ax.xaxis.set_major_locator(days)
-ax.xaxis.set_major_formatter(daysFmt)
-ax.xaxis.set_minor_locator(hours)
-ax.grid()
-fig.autofmt_xdate()
+ax.set_yscale('log')
 ax.set_title('GOES Forecast from {}(TAI)'.format(time_begin.strftime('%Y-%m-%d %H:%M:%S')))
 ax.set_xlabel('International Atomic Time')
 ax.set_ylabel(u'GOES Long[1-8Å] Xray Flux (W/m²)')
-plt.text(time_end, 5e-4, 'X-class', rotation=90)
-plt.text(time_end, 5e-5, 'M-class', rotation=90)
-plt.text(time_end, 5e-6, 'C-class', rotation=90)
-plt.text(time_end, 5e-7, 'B-class', rotation=90)
-plt.ylim([1e-7,1e-3])
+ax.text(time_end, 5e-4, 'X-class', rotation=90)
+ax.text(time_end, 5e-5, 'M-class', rotation=90)
+ax.text(time_end, 5e-6, 'C-class', rotation=90)
+ax.text(time_end, 5e-7, 'B-class', rotation=90)
+ax.ylim([1e-7,1e-3])
+
+
+ax=ax[1]
+ax.plot(aia_curve_t, aia_curve_y, 'r')
+ax.set_yscale('log')
+
+fig.autofmt_xdate()
+
 plt.savefig("sample-goes-flux.png", dpi=200)
 plt.close('all')
