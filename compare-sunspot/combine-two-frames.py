@@ -13,11 +13,11 @@ for p in paths:
 n = min([len(fns) for fns in fnss])
 
 
-for i in range(n):
-    out_fn = "{}/{:08}.png".format(out_path, i)
-    i_fns = [fns[i] for fns in fnss]
-    print i_fns
-    subprocess.call(["convert"] + i_fns + ["+append", out_fn])
+# for i in range(n):
+#     out_fn = "{}/{:08}.png".format(out_path, i)
+#     i_fns = [fns[i] for fns in fnss]
+#     print i_fns
+#     subprocess.call(["convert"] + i_fns + ["+append", out_fn])
 
 
-subprocess.call("ffmpeg -r 24 -i {}/%08d.png   -qscale 0 {}.wmv".format(out_path, out_path), shell=True)
+subprocess.call("ffmpeg -r 24 -i {}/%08d.png   -qscale 0 {}.mov".format(out_path, out_path), shell=True)
