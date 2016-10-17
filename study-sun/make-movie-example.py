@@ -17,8 +17,6 @@ subprocess.call(['mkdir', '-p','frames'])
 filenames = []
 counter = 0
 
-#time_begin = datetime.datetime(2014,12,18,00,00)
-#time_end   = datetime.datetime(2014,12,21,00,00)
 time_begin = datetime.datetime(2013,11,04,00,00)
 time_end   = datetime.datetime(2013,11,07,00,00)
 

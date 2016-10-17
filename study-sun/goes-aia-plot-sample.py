@@ -55,14 +55,24 @@ while True:
     t += datetime.timedelta(minutes=2)
     if t > time_end:
         break
-    img = get_aia_image(94, t)
+    img = get_aia_image(193, t)
     if img is None:
         continue
     img.data = img.data / (img.exposure_time / u.second)
     img.data = np.maximum(0,img.data)
 
     aia_flux = np.sum(img.data)
-    print t,aia_flux
+
+    # aia_flux = max(1,aia_flux-9e5)
+    # print t,aia_flux
+
+    if aia_flux > 2e8:
+        print "too bright: ", t 
+        continue
+
+    if aia_flux < 1.6e8:
+        print "too dark: ", t 
+        continue
 
     aia_curve_t.append(t)
     aia_curve_y.append(aia_flux)
@@ -99,9 +109,9 @@ ax.set_ylim([1e-7,1e-3])
 
 ax=axs[1]
 ax.plot(aia_curve_t, aia_curve_y, 'r')
-ax.set_yscale('log')
+# ax.set_yscale('log')
 
 fig.autofmt_xdate()
 
-plt.savefig("sample-goes-flux.png", dpi=200)
+plt.savefig("goes-and-aia193-flux.png", dpi=200)
 plt.close('all')
