@@ -49,7 +49,7 @@ while True:
     threshold_integrals = {}
     for threshold in xrange(0,10000,100):
         y = np.sum(np.maximum(0, img.data - threshold))
-        threshold_integrals[threshold] = y
+        threshold_integrals[threshold] = float(y)
     print t, threshold_integrals
 
     ret[t] = threshold_integrals
