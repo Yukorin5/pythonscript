@@ -24,8 +24,8 @@ counter = 0
 # time_begin = datetime.datetime(2014,10,24,00,00)
 # time_end   = datetime.datetime(2014,10,27,00,00)
 
-time_begin = datetime.datetime(2013,11,04,00,00)
-time_end   = datetime.datetime(2013,11,07,00,00)
+time_begin = datetime.datetime(2013,11,26,12,00)
+time_end   = datetime.datetime(2013,11,27,12,00)
 dt = datetime.timedelta(minutes=2)
 
 
@@ -37,13 +37,34 @@ while True:
     t += dt
     if t > time_end:
         break
-    y = get_goes_flux_fast(t)
+    y = get_goes_flux(t)
 
     print t,y
 
     goes_flux_t.append(t)
     goes_flux_y.append(y)
 
+
+aia_flux_t = []
+aia_flux_y = []
+t = time_begin
+while True:
+    t += dt
+    if t > time_end:
+        break
+
+    img = get_aia_image(193, t)
+    if img is None:
+        continue
+    img.data = img.data / (img.exposure_time / u.second)
+    
+    y1 = np.sum(np.maximum(0, img.data - 3000))
+    y2 = np.sum(np.maximum(0, img.data - 4000))
+
+    aia_flux_t.append(t)
+    aia_flux_y.append(y2/y1)
+
+    print t,y
 
 t = time_begin
 while True:
@@ -55,12 +76,15 @@ while True:
     if img is None:
         continue
 
+
+
     print t
     print "image shape = ", img.data.shape
     print "exposure time = ", img.exposure_time
     print "data type =",  type(img.data)
     
     img.data = img.data / (img.exposure_time / u.second)
+    img.data = np.maximum(0, img.data - 3000)
     
     print "min pixel brightness = ", np.min(img.data)
     print "max pixel brightness = ", np.max(img.data)
@@ -79,7 +103,7 @@ while True:
     plt.clim(0,10000)
 
     # goes fluxをプロットします
-    plt.subplot2grid((3,10),(2,1),colspan=9)
+    plt.subplot2grid((6,10),(4,1),colspan=9)
     
     plt.gca().set_yscale('log')
     plt.plot(goes_flux_t,goes_flux_y,'b')
@@ -87,6 +111,24 @@ while True:
     plt.plot([t, t], [1e-7, 1e-3], color='k', linestyle='-', linewidth=2)
     plt.gca().set_xlabel('Time (TAI)')
     plt.gca().set_ylabel('GOES X-ray flux (W/m^2)')
+
+    dayLocator  = mdates.DayLocator()  
+    hourLocator = mdates.HourLocator()  
+    daysFmt = mdates.DateFormatter('%Y-%m-%d')
+    plt.gca().xaxis.set_major_locator(dayLocator)
+    plt.gca().xaxis.set_major_formatter(daysFmt)
+    plt.gca().xaxis.set_minor_locator(hourLocator)
+    plt.gca().grid()
+    plt.gcf().autofmt_xdate()
+
+    # AIA fluxをプロットします
+    plt.subplot2grid((6,10),(5,1),colspan=9)
+    
+    # plt.gca().set_yscale('log')
+    plt.plot(aia_flux_t,aia_flux_y,'r')
+    plt.plot([t, t], [0, 1], color='k', linestyle='-', linewidth=2)
+    plt.gca().set_xlabel('Time (TAI)')
+    plt.gca().set_ylabel('AIA Thresholded integral')
 
     dayLocator  = mdates.DayLocator()  
     hourLocator = mdates.HourLocator()  

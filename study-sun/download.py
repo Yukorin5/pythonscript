@@ -23,8 +23,12 @@ t = t_begin
 while t < t_begin + datetime.timedelta(days=16):
     print t
 #    img = get_hmi_image(t)
-#    img = get_aia_image(94, t)
-#    img = get_aia_image(193, t)
-    img = get_aia_image(304, t)
+    img = get_aia_image(131, t)
+    img = get_aia_image(171, t)
+    img = get_aia_image(211,t )
+#    img = get_aia_image3("35, t)
+#    img = get_aia_image(, t)
+#    img = get_aia_image(4500, t)
+
     t += datetime.timedelta(minutes=60)
 

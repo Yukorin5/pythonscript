@@ -9,6 +9,9 @@ import sunpy.map
 
 global data_path
 data_path = os.environ['ufcorin_bigdata_path']
+global offline_mode
+
+offline_mode = False
 
 
 # 時刻tにおける太陽磁場画像を取得します
@@ -44,7 +47,7 @@ def get_hmi_image(t):
 # これは1024^2に縮小されたデータです。
 # SDO衛星が撮影した元データは http://sdo.gsfc.nasa.gov/data/ にあります。
 def get_aia_image(wavelength,t):
-    global data_path
+    global data_path, offline_mode
     cache_fn = data_path + '/aia{:04}/'.format(wavelength) + t.strftime('%Y/%m/%d/%H%M.fits').replace('/',os.sep)
     if os.path.exists(cache_fn):
         try:
@@ -53,10 +56,15 @@ def get_aia_image(wavelength,t):
             return None
 
 
+    if offline_mode:
+        return None
+
     url = 'http://jsoc2.stanford.edu/data/aia/synoptic/{:04}/{:02}/{:02}/H{:02}00/AIA{:04}{:02}{:02}_{:02}{:02}_{:04}.fits'.format(t.year, t.month, t.day,t.hour, t.year, t.month, t.day, t.hour, t.minute, wavelength)
     url2 = 'http://jsoc2.stanford.edu/data/aia/synoptic/nrt/{:04}/{:02}/{:02}/H{:02}00/AIA{:04}{:02}{:02}_{:02}{:02}00_{:04}.fits'.format(t.year, t.month, t.day,t.hour, t.year, t.month, t.day, t.hour, t.minute, wavelength)
-        
+
+
     resp = requests.get(url)
+
     if resp.status_code != 200:
         resp = requests.get(url2)
         if resp.status_code != 200:
