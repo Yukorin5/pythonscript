@@ -39,7 +39,7 @@ for image_idx in range(num_images):
     print T_REC, XDIM_CCD, YDIM_CCD
 
 
-    url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{}/12s][?WAVELNTH=1600?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(T_REC)
+    url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{}/12s][?WAVELNTH=1600?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(T_REC.replace("00_TAI","06_TAI"))
     response = urllib.urlopen(url)
     data_aia = json.loads(response.read())
     filename = data['segments'][0]['values'][0]
