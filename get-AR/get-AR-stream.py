@@ -81,5 +81,6 @@ for image_idx in range(num_images):
     sdoaia1600 = plt.get_cmap('sdoaia1600')
     plt.imshow(subdata,cmap=sdoaia1600,origin='lower',vmin=0,vmax=400)
     print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
+    plt.title("HARP AR{}".format(harp_num) + "\n" + map_aia.name)
     plt.savefig("frames/aia-sub-{:06}.png".format(image_idx))
     plt.close("all")
