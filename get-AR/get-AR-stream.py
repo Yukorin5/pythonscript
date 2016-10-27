@@ -19,6 +19,9 @@ import math
 harp_num = 1449
 
 url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=hmi.sharp_720s[{}][]&op=rs_list&key=T_REC,CRPIX1,CRPIX2,CROTA2,CDELT1&seg=magnetogram".format(harp_num)
+
+# url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=hmi.sharp_720s[1449][2012.03.06_23:29:06_TAI]&op=rs_list&key=T_REC,CRPIX1,CRPIX2,CROTA2,CDELT1&seg=magnetogram"
+
 response = urllib.urlopen(url)
 data = json.loads(response.read())
 filename = data['segments'][0]['values'][0]
@@ -28,6 +31,8 @@ photosphere_image = fits.open(url)        # download the data
 num_images = len(data['segments'][0]['values'])
 
 for image_idx in range(num_images):
+    print image_idx, "/", num_images
+
     T_REC      = data['keywords'][0]['values'][image_idx]
     CRPIX1_CCD = float(data['keywords'][1]['values'][image_idx])
     CRPIX2_CCD = float(data['keywords'][2]['values'][image_idx])
@@ -38,11 +43,14 @@ for image_idx in range(num_images):
 
     print T_REC, XDIM_CCD, YDIM_CCD
 
+    url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{}/12s][?WAVELNTH=1600?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(T_REC)
 
-    url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{}/12s][?WAVELNTH=1600?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(T_REC.replace("00_TAI","06_TAI"))
+    #url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[2012.03.06_23:29:06_TAI/12s][?WAVELNTH=1600?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1"
+
+
     response = urllib.urlopen(url)
     data_aia = json.loads(response.read())
-    filename = data['segments'][0]['values'][0]
+    filename = data_aia['segments'][0]['values'][0]
     url = "http://jsoc.stanford.edu"+filename
     chromosphere_image = fits.open(url)   # download the data
 
@@ -59,9 +67,6 @@ for image_idx in range(num_images):
     map_aia.plot()
     plt.savefig("frames/aia-{:06}.png".format(image_idx))
     plt.close("all")
-
-
-
 
     ratio = (CDELT1_CCD)/(CDELT1_AIA)
     print "The ratio of the HMI:AIA platescales is",ratio
