@@ -16,7 +16,9 @@ import math
 
 
 
-harp_num = 1449
+
+harp_num = 4698
+wavelengths=[94,193]
 
 url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=hmi.sharp_720s[{}][]&op=rs_list&key=T_REC,CRPIX1,CRPIX2,CROTA2,CDELT1&seg=magnetogram".format(harp_num)
 
@@ -42,45 +44,42 @@ for image_idx in range(num_images):
     YDIM_CCD = float(data['segments'][0]['dims'][image_idx].rsplit('x', 1)[1])
 
     print T_REC, XDIM_CCD, YDIM_CCD
+    for wavelength in wavelengths:
+        url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{}/12s][?WAVELNTH={w}?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(t=T_REC, w=wavelength)
 
-    url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{}/12s][?WAVELNTH=1600?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(T_REC)
+        response = urllib.urlopen(url)
+        data_aia = json.loads(response.read())
+        filename = data_aia['segments'][0]['values'][0]
+        url = "http://jsoc.stanford.edu"+filename
+        chromosphere_image = fits.open(url)   # download the data
 
-    #url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[2012.03.06_23:29:06_TAI/12s][?WAVELNTH=1600?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1"
+        T_REC = data_aia['keywords'][0]['values'][0]
+        CROTA2_AIA = float(data_aia['keywords'][1]['values'][0])
+        CDELT1_AIA = float(data_aia['keywords'][2]['values'][0])
+        CDELT2_AIA = float(data_aia['keywords'][3]['values'][0])
+        CRPIX1_AIA = float(data_aia['keywords'][4]['values'][0])
+        CRPIX2_AIA = float(data_aia['keywords'][5]['values'][0])
+        CRVAL1_AIA = float(data_aia['keywords'][6]['values'][0])
+        CRVAL2_AIA = float(data_aia['keywords'][7]['values'][0])
 
+        map_aia = sunpy.map.Map(url)
+        map_aia.plot()
+        plt.savefig("frames/aia{:04}-{:06}.png".format(wavelength,image_idx))
+        plt.close("all")
 
-    response = urllib.urlopen(url)
-    data_aia = json.loads(response.read())
-    filename = data_aia['segments'][0]['values'][0]
-    url = "http://jsoc.stanford.edu"+filename
-    chromosphere_image = fits.open(url)   # download the data
+        ratio = (CDELT1_CCD)/(CDELT1_AIA)
+        print "The ratio of the HMI:AIA platescales is",ratio
 
-    T_REC = data_aia['keywords'][0]['values'][0]
-    CROTA2_AIA = float(data_aia['keywords'][1]['values'][0])
-    CDELT1_AIA = float(data_aia['keywords'][2]['values'][0])
-    CDELT2_AIA = float(data_aia['keywords'][3]['values'][0])
-    CRPIX1_AIA = float(data_aia['keywords'][4]['values'][0])
-    CRPIX2_AIA = float(data_aia['keywords'][5]['values'][0])
-    CRVAL1_AIA = float(data_aia['keywords'][6]['values'][0])
-    CRVAL2_AIA = float(data_aia['keywords'][7]['values'][0])
-
-    map_aia = sunpy.map.Map(url)
-    map_aia.plot()
-    plt.savefig("frames/aia-{:06}.png".format(image_idx))
-    plt.close("all")
-
-    ratio = (CDELT1_CCD)/(CDELT1_AIA)
-    print "The ratio of the HMI:AIA platescales is",ratio
-
-    chromosphere_image.verify("fix")
-    if (CROTA2_AIA > 5.0):
-        print "The AIA camera rotation angle is",CROTA2_AIA,". Rotating AIA image."
-        chromosphere_image[1].data = np.rot90(chromosphere_image[1].data,2)
-    subdata = chromosphere_image[1].data[(2048. + CRPIX2_CCD*(ratio) - YDIM_CCD*(ratio)) : (2048. + CRPIX2_CCD*(ratio)),(2048. + CRPIX1_CCD*(ratio) - XDIM_CCD*(ratio)) : (2048. + CRPIX1_CCD*(ratio))]
+        chromosphere_image.verify("fix")
+        if (CROTA2_AIA > 5.0):
+            print "The AIA camera rotation angle is",CROTA2_AIA,". Rotating AIA image."
+            chromosphere_image[1].data = np.rot90(chromosphere_image[1].data,2)
+        subdata = chromosphere_image[1].data[(2048. + CRPIX2_CCD*(ratio) - YDIM_CCD*(ratio)) : (2048. + CRPIX2_CCD*(ratio)),(2048. + CRPIX1_CCD*(ratio) - XDIM_CCD*(ratio)) : (2048. + CRPIX1_CCD*(ratio))]
 
 
-    sdoaia1600 = plt.get_cmap('sdoaia1600')
-    plt.imshow(subdata,cmap=sdoaia1600,origin='lower',vmin=0,vmax=400)
-    print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
-    plt.title("HARP AR{}".format(harp_num) + "\n" + map_aia.name)
-    plt.savefig("frames/aia-sub-{:06}.png".format(image_idx))
-    plt.close("all")
+        sdoaia_cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
+        plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=400)
+        print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
+        plt.title("HARP AR{}".format(harp_num) + "\n" + map_aia.name)
+        plt.savefig("frames/aia{:04}-sub-{:06}.png".format(wavelength, image_idx))
+        plt.close("all")
