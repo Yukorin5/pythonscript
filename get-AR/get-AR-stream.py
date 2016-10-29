@@ -15,7 +15,7 @@ from matplotlib.dates import *
 import math
 
 
-harp_num = 3341
+harp_num = 4698 #3341
 wavelengths=[94,193,1600]
 
 def cadence_of_wavelength(w):
@@ -76,9 +76,9 @@ for image_idx in range(num_images):
         CRVAL2_AIA = float(data_aia['keywords'][7]['values'][0])
 
         map_aia = sunpy.map.Map(url)
-        map_aia.plot()
-        plt.savefig("frames/aia{:04}-{:06}.png".format(wavelength,image_idx))
-        plt.close("all")
+        #map_aia.plot()
+        #plt.savefig("frames/aia{:04}-{:06}.png".format(wavelength,image_idx))
+        #plt.close("all")
 
         ratio = (CDELT1_CCD)/(CDELT1_AIA)
         print "The ratio of the HMI:AIA platescales is",ratio
@@ -94,5 +94,5 @@ for image_idx in range(num_images):
         plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=400)
         print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
         plt.title("HARP AR{}".format(harp_num) + "\n" + map_aia.name)
-        plt.savefig("frames/aia{:04}-sub-{:06}.png".format(wavelength, image_idx))
+        plt.savefig("frames/AR{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
         plt.close("all")
