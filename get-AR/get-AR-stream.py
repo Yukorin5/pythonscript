@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import matplotlib
 matplotlib.use('Agg')
-import json, urllib, numpy as np, matplotlib.pylab as plt, matplotlib.ticker as mtick
+import json, urllib, numpy as np, matplotlib.pylab as plt, matplotlib.ticker as mtick,sys
 import sunpy.map
 from astropy.io import fits
 from sunpy.cm import color_tables as ct
@@ -15,7 +15,7 @@ from matplotlib.dates import *
 import math
 
 
-harp_num = 4698 #3341
+harp_num = int(sys.argv[1])
 wavelengths=[94,193,1600]
 
 def cadence_of_wavelength(w):
@@ -94,5 +94,5 @@ for image_idx in range(num_images):
         plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=400)
         print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
         plt.title("HARP AR{}".format(harp_num) + "\n" + map_aia.name)
-        plt.savefig("frames/AR{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
+        plt.savefig("frames/HARP{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
         plt.close("all")
