@@ -28,8 +28,8 @@ def cadence_of_wavelength(w):
 
 def vmax_of_wavelength(w):
     if w==94: return 100
-    if w==193: return 10000
-    if w==1600: return 400
+    if w==193: return 3000
+    if w==1600: return 200
     return None
 
 
@@ -119,5 +119,7 @@ for image_idx in range(num_images):
         plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=vmax_of_wavelength(wavelength))
         print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
         plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, wavelength, T_REC))
+        cbaxes = plt.gcf().add_axes([0.8, 0.1, 0.03, 0.8])
+        plt.colorbar(cax=cbaxes)
         plt.savefig("frames/HARP{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
         plt.close("all")
