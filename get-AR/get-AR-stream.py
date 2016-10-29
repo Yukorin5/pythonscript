@@ -26,6 +26,12 @@ def cadence_of_wavelength(w):
         return 24
     return 3600
 
+def vmax_of_wavelength(w):
+    if w==94: return 100
+    if w==193: return 10000
+    if w==1600: return 400
+    return None
+
 
 url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=hmi.sharp_720s[{}][]&op=rs_list&key=T_REC,CRPIX1,CRPIX2,CROTA2,CDELT1&seg=magnetogram".format(harp_num)
 
@@ -102,7 +108,7 @@ for image_idx in range(num_images):
 
 
         sdoaia_cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
-        plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=400)
+        plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=vmax_of_wavelength(wavelength))
         print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
         plt.title("HARP AR{}".format(harp_num) + "\n" + map_aia.name)
         plt.savefig("frames/HARP{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
