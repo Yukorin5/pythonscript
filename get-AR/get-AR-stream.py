@@ -45,7 +45,11 @@ photosphere_image = fits.open(url)        # download the data
 
 num_images = len(data['segments'][0]['values'])
 
-for image_idx in range(num_images):
+starting_index=0
+if 2 in sys.argv:
+    starting_index = int(sys.argv[2])
+
+for image_idx in range(starting_index,num_images):
     print image_idx, "/", num_images
 
     T_REC      = data['keywords'][0]['values'][image_idx]
@@ -61,8 +65,14 @@ for image_idx in range(num_images):
         cadence = cadence_of_wavelength(wavelength)
         url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{t}/{c}s][?WAVELNTH={w}?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(t=T_REC, w=wavelength, c = cadence)
 
-        response = urllib.urlopen(url)
-        data_aia = json.loads(response.read())
+        try:
+            response = urllib.urlopen(url)
+            data_aia = json.loads(response.read())
+        except Exception as e:
+            print "Error loading AIA metadata for WL = ", wavelength, "T = ", T_REC
+            print e.message
+            continue
+
 
         if not 'segments' in data_aia:
             print "No data for WL = ", wavelength, "T = ", T_REC
@@ -74,7 +84,7 @@ for image_idx in range(num_images):
             chromosphere_image = fits.open(url)   # download the data
         except Exception as e:
             print "Error loading AIA for WL = ", wavelength, "T = ", T_REC
-            print e.messgage
+            print e.message
             continue
 
         T_REC = data_aia['keywords'][0]['values'][0]
@@ -85,17 +95,6 @@ for image_idx in range(num_images):
         CRPIX2_AIA = float(data_aia['keywords'][5]['values'][0])
         CRVAL1_AIA = float(data_aia['keywords'][6]['values'][0])
         CRVAL2_AIA = float(data_aia['keywords'][7]['values'][0])
-        #
-        #try:
-        #    map_aia = sunpy.map.Map(url)
-        #except Exception as e:
-        #    print "Error loading AIA Map for WL = ", wavelength, "T = ", T_REC
-        #    print e.messgage
-        #    continue
-
-        #map_aia.plot()
-        #plt.savefig("frames/aia{:04}-{:06}.png".format(wavelength,image_idx))
-        #plt.close("all")
 
         ratio = (CDELT1_CCD)/(CDELT1_AIA)
         print "The ratio of the HMI:AIA platescales is",ratio
