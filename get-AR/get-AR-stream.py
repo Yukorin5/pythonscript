@@ -64,7 +64,12 @@ for image_idx in range(num_images):
 
         filename = data_aia['segments'][0]['values'][0]
         url = "http://jsoc.stanford.edu"+filename
-        chromosphere_image = fits.open(url)   # download the data
+        try:
+            chromosphere_image = fits.open(url)   # download the data
+        except e:
+            print "Error loading AIA for WL = ", wavelength, "T = ", T_REC
+            print e.messgage
+            continue
 
         T_REC = data_aia['keywords'][0]['values'][0]
         CROTA2_AIA = float(data_aia['keywords'][1]['values'][0])
@@ -75,7 +80,13 @@ for image_idx in range(num_images):
         CRVAL1_AIA = float(data_aia['keywords'][6]['values'][0])
         CRVAL2_AIA = float(data_aia['keywords'][7]['values'][0])
 
-        map_aia = sunpy.map.Map(url)
+        try:
+            map_aia = sunpy.map.Map(url)
+        except e:
+            print "Error loading AIA Map for WL = ", wavelength, "T = ", T_REC
+            print e.messgage
+            continue
+
         #map_aia.plot()
         #plt.savefig("frames/aia{:04}-{:06}.png".format(wavelength,image_idx))
         #plt.close("all")
