@@ -15,10 +15,17 @@ from matplotlib.dates import *
 import math
 
 
+harp_num = 3341
+wavelengths=[94,193,1600]
 
+def cadence_of_wavelength(w):
+    # c.f. http://jsoc.stanford.edu/new/AIA/AIA_lev1.html
+    if w < 1000:
+        return 12
+    if w <= 1700:
+        return 24
+    return 3600
 
-harp_num = 4698
-wavelengths=[94,193]
 
 url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=hmi.sharp_720s[{}][]&op=rs_list&key=T_REC,CRPIX1,CRPIX2,CROTA2,CDELT1&seg=magnetogram".format(harp_num)
 
@@ -45,10 +52,16 @@ for image_idx in range(num_images):
 
     print T_REC, XDIM_CCD, YDIM_CCD
     for wavelength in wavelengths:
-        url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{t}/12s][?WAVELNTH={w}?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(t=T_REC, w=wavelength)
+        cadence = cadence_of_wavelength(wavelength)
+        url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{t}/{c}s][?WAVELNTH={w}?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(t=T_REC, w=wavelength, c = cadence)
 
         response = urllib.urlopen(url)
         data_aia = json.loads(response.read())
+
+        if not 'segments' in data_aia:
+            print "No data for WL = ", wavelength, "T = ", T_REC
+            continue
+
         filename = data_aia['segments'][0]['values'][0]
         url = "http://jsoc.stanford.edu"+filename
         chromosphere_image = fits.open(url)   # download the data
