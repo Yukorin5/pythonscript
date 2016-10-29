@@ -72,7 +72,7 @@ for image_idx in range(num_images):
         url = "http://jsoc.stanford.edu"+filename
         try:
             chromosphere_image = fits.open(url)   # download the data
-        except e:
+        except Exception as e:
             print "Error loading AIA for WL = ", wavelength, "T = ", T_REC
             print e.messgage
             continue
@@ -85,13 +85,13 @@ for image_idx in range(num_images):
         CRPIX2_AIA = float(data_aia['keywords'][5]['values'][0])
         CRVAL1_AIA = float(data_aia['keywords'][6]['values'][0])
         CRVAL2_AIA = float(data_aia['keywords'][7]['values'][0])
-
-        try:
-            map_aia = sunpy.map.Map(url)
-        except e:
-            print "Error loading AIA Map for WL = ", wavelength, "T = ", T_REC
-            print e.messgage
-            continue
+        #
+        #try:
+        #    map_aia = sunpy.map.Map(url)
+        #except Exception as e:
+        #    print "Error loading AIA Map for WL = ", wavelength, "T = ", T_REC
+        #    print e.messgage
+        #    continue
 
         #map_aia.plot()
         #plt.savefig("frames/aia{:04}-{:06}.png".format(wavelength,image_idx))
@@ -101,6 +101,14 @@ for image_idx in range(num_images):
         print "The ratio of the HMI:AIA platescales is",ratio
 
         chromosphere_image.verify("fix")
+        exptime = chromosphere_image[1].header['EXPTIME']
+        if exptime <=0:
+            print "Non-positive exptime for WL = ", wavelength, "T = ", T_REC
+            continue
+
+        print "WL = ", wavelength, "T = ", T_REC, "EXPTIME = ", exptime
+        chromosphere_image[1].data /= exptime
+
         if (CROTA2_AIA > 5.0):
             print "The AIA camera rotation angle is",CROTA2_AIA,". Rotating AIA image."
             chromosphere_image[1].data = np.rot90(chromosphere_image[1].data,2)
@@ -110,6 +118,6 @@ for image_idx in range(num_images):
         sdoaia_cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
         plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=vmax_of_wavelength(wavelength))
         print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
-        plt.title("HARP AR{}".format(harp_num) + "\n" + map_aia.name)
+        plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, wavelength, T_REC))
         plt.savefig("frames/HARP{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
         plt.close("all")
