@@ -3,7 +3,7 @@
 import matplotlib
 matplotlib.use('Agg')
 import datetime as T
-import json, urllib, numpy as np, matplotlib.pylab as plt, matplotlib.ticker as mtick,cPickle as pickle,sys
+import json, urllib, numpy as np, matplotlib.pylab as plt, matplotlib.ticker as mtick,cPickle as pickle,subprocess,sys
 import sunpy.map
 from astropy.io import fits
 from sunpy.cm import color_tables as ct
@@ -69,7 +69,7 @@ for image_idx in range(starting_index,num_images):
 
     for wavelength in wavelengths:
         archive_path = archive_path_of_wavelength(wavelength)
-        subprocess.call("mkdir -p " + archive_path)
+        subprocess.call("mkdir -p " + archive_path, shell=True)
 
         cadence = cadence_of_wavelength(wavelength)
         url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{t}/{c}s][?WAVELNTH={w}?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(t=T_REC, w=wavelength, c = cadence)
