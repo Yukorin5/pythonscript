@@ -99,7 +99,7 @@ for image_idx in range(starting_index,num_images):
         }
         subdata_archive["hmi"].append(subdata_frame)
         with open(hmi_archive_path + subdata_filename,"w") as fp:
-            subdata = photosphere_image[1].data
+            subdata = photosphere_image[1].data.astype(np.float32)
             pickle.dump(subdata, fp, protocol=-1)
 
 
