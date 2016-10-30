@@ -146,4 +146,4 @@ for image_idx in range(starting_index,num_images):
 for w in wavelengths:
     fn = "HARP{}-aia{:04}.pickle".format(harp_num, w)
     with open(fn,"w") as fp:
-        pickle.dump(subimages_archive[w], fp, protocol=-1)
+        pickle.dump(subdata_archive[w], fp, protocol=-1)
