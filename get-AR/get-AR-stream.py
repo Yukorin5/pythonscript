@@ -88,7 +88,7 @@ for image_idx in range(starting_index,num_images):
             print "The HMI camera rotation angle is",CROTA2_CCD,". Rotating HMI images."
             photosphere_image[1].data = np.rot90(photosphere_image[1].data,2)
 
-        subdata_filename = "f{:06}.pickle".format(image_idx)
+        subdata_filename = "f{:06}.npz".format(image_idx)
         subdata_frame = {
             't' : time_recorded,
             'x1' : ccd_x1,
@@ -98,9 +98,10 @@ for image_idx in range(starting_index,num_images):
             'filename' : subdata_filename
         }
         subdata_archive["hmi"].append(subdata_frame)
-        with open(hmi_archive_path + subdata_filename,"w") as fp:
-            subdata = photosphere_image[1].data.astype(np.float32)
-            pickle.dump(subdata, fp, protocol=-1)
+        file_path = hmi_archive_path + subdata_filename
+        subdata = np.nan_to_num(photosphere_image[1].data).astype(np.float32)
+        np.savez_compressed(file_path, img=subdata)
+        # pickle.dump(subdata, fp, protocol=-1)
 
 
 
@@ -165,7 +166,7 @@ for image_idx in range(starting_index,num_images):
 
         print "WL = ", wavelength, "T = ", time_recorded, "EXPTIME = ", exptime, "({}:{} , {}:{})".format(ccd_x1,ccd_x2, ccd_y1, ccd_y2)
 
-        subdata_filename = "f{:06}.pickle".format(len(subdata_archive[wavelength]))
+        subdata_filename = "f{:06}.npz".format(len(subdata_archive[wavelength]))
 
         subdata_frame = {
             't' : time_recorded,
@@ -177,8 +178,8 @@ for image_idx in range(starting_index,num_images):
         }
         subdata_archive[wavelength].append(subdata_frame)
 
-        with open(archive_path + subdata_filename,"w") as fp:
-            pickle.dump(subdata, fp, protocol=-1)
+        file_path = archive_path + subdata_filename
+        np.savez_compressed(file_path, img=subdata)
 
         if plot_mode:
             sdoaia_cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
