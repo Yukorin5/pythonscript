@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import matplotlib
 matplotlib.use('Agg')
-import json, urllib, numpy as np, matplotlib.pylab as plt, matplotlib.ticker as mtick,sys
+import datetime as T
+import json, urllib, numpy as np, matplotlib.pylab as plt, matplotlib.ticker as mtick,cPickle as pickle,sys
 import sunpy.map
 from astropy.io import fits
 from sunpy.cm import color_tables as ct
 import sunpy.wcs as wcs
-from datetime import datetime as dt_obj
 import matplotlib.dates as mdates
 import matplotlib.colors as mcol
 import matplotlib.patches as ptc
@@ -17,6 +17,7 @@ import math
 
 harp_num = int(sys.argv[1])
 wavelengths=[94,193,1600]
+plot_mode = False
 
 def cadence_of_wavelength(w):
     # c.f. http://jsoc.stanford.edu/new/AIA/AIA_lev1.html
@@ -49,6 +50,10 @@ starting_index=0
 if len(sys.argv)>=3:
     starting_index = int(sys.argv[2])
 
+subdata_archive = {}
+for w in wavelengths:
+    subdata_archive[w] = []
+
 for image_idx in range(starting_index,num_images):
     print image_idx, "/", num_images
 
@@ -60,7 +65,6 @@ for image_idx in range(starting_index,num_images):
     XDIM_CCD = float(data['segments'][0]['dims'][image_idx].rsplit('x', 1)[0])
     YDIM_CCD = float(data['segments'][0]['dims'][image_idx].rsplit('x', 1)[1])
 
-    print T_REC, XDIM_CCD, YDIM_CCD
     for wavelength in wavelengths:
         cadence = cadence_of_wavelength(wavelength)
         url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{t}/{c}s][?WAVELNTH={w}?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(t=T_REC, w=wavelength, c = cadence)
@@ -97,7 +101,6 @@ for image_idx in range(starting_index,num_images):
         CRVAL2_AIA = float(data_aia['keywords'][7]['values'][0])
 
         ratio = (CDELT1_CCD)/(CDELT1_AIA)
-        print "The ratio of the HMI:AIA platescales is",ratio
 
         chromosphere_image.verify("fix")
         exptime = chromosphere_image[1].header['EXPTIME']
@@ -105,20 +108,42 @@ for image_idx in range(starting_index,num_images):
             print "Non-positive exptime for WL = ", wavelength, "T = ", T_REC
             continue
 
-        print "WL = ", wavelength, "T = ", T_REC, "EXPTIME = ", exptime
         chromosphere_image[1].data /= exptime
 
         if (CROTA2_AIA > 5.0):
             print "The AIA camera rotation angle is",CROTA2_AIA,". Rotating AIA image."
             chromosphere_image[1].data = np.rot90(chromosphere_image[1].data,2)
-        subdata = chromosphere_image[1].data[(2048. + CRPIX2_CCD*(ratio) - YDIM_CCD*(ratio)) : (2048. + CRPIX2_CCD*(ratio)),(2048. + CRPIX1_CCD*(ratio) - XDIM_CCD*(ratio)) : (2048. + CRPIX1_CCD*(ratio))]
+        ccd_x1 = int(2048. + CRPIX2_CCD*(ratio) - YDIM_CCD*(ratio))
+        ccd_x2 = int(2048. + CRPIX2_CCD*(ratio)+1)
+        ccd_y1 = int(2048. + CRPIX1_CCD*(ratio) - XDIM_CCD*(ratio))
+        ccd_y2 = int(2048. + CRPIX1_CCD*(ratio)+1)
+        subdata = chromosphere_image[1].data[ccd_x1:ccd_x2, ccd_y1:ccd_y2]
 
+        time_recorded = T.datetime.strptime(T_REC, '%Y-%m-%dT%H:%M:%SZ')
 
-        sdoaia_cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
-        plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=vmax_of_wavelength(wavelength))
-        print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
-        plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, wavelength, T_REC))
-        cbaxes = plt.gcf().add_axes([0.8, 0.1, 0.03, 0.8])
-        plt.colorbar(cax=cbaxes)
-        plt.savefig("frames/HARP{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
-        plt.close("all")
+        print "WL = ", wavelength, "T = ", time_recorded, "EXPTIME = ", exptime, "({}:{} , {}:{})".format(ccd_x1,ccd_x2, ccd_y1, ccd_y2)
+
+        subdata_frame = {
+            't' : time_recorded,
+            'x1' : ccd_x1,
+            'x2' : ccd_x2,
+            'y1' : ccd_y1,
+            'y2' : ccd_y2,
+            'data' : subdata
+        }
+        subdata_archive[wavelength].append(subdata_frame)
+
+        if plot_mode:
+            sdoaia_cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
+            plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=vmax_of_wavelength(wavelength))
+            print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
+            plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, wavelength, T_REC))
+            cbaxes = plt.gcf().add_axes([0.8, 0.1, 0.03, 0.8])
+            plt.colorbar(cax=cbaxes)
+            plt.savefig("frames/HARP{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
+            plt.close("all")
+
+for w in wavelengths:
+    fn = "HARP{}-aia{:04}.pickle".format(harp_num, w)
+    with open(fn,"w") as fp:
+        pickle.dump(subimages_archive[w], fp, protocol=-1)
