@@ -46,7 +46,7 @@ photosphere_image = fits.open(url)        # download the data
 num_images = len(data['segments'][0]['values'])
 
 starting_index=0
-if 2 in sys.argv:
+if len(sys.argv)>=3:
     starting_index = int(sys.argv[2])
 
 for image_idx in range(starting_index,num_images):
