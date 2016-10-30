@@ -39,10 +39,6 @@ url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=hmi.sharp_720s[{}][]&o
 
 response = urllib.urlopen(url)
 sharp_data = json.loads(response.read())
-filename = data['segments'][0]['values'][0]
-url = "http://jsoc.stanford.edu"+filename
-photosphere_image = fits.open(url)        # download the data
-
 num_images = len(sharp_data['segments'][0]['values'])
 
 starting_index=0
@@ -74,28 +70,37 @@ for image_idx in range(starting_index,num_images):
     YDIM_CCD = float(sharp_data['segments'][0]['dims'][image_idx].rsplit('x', 1)[1])
 
     ccd_x1 = int(2048. + CRPIX2_CCD - YDIM_CCD)
-    ccd_x2 = int(2048. + CRPIX2_CCD+1)
+    ccd_x2 = int(2048. + CRPIX2_CCD)
     ccd_y1 = int(2048. + CRPIX1_CCD - XDIM_CCD)
-    ccd_y2 = int(2048. + CRPIX1_CCD+1)
-    time_recorded = T.datetime.strptime(T_REC, '%Y-%m-%dT%H:%M:%SZ')
+    ccd_y2 = int(2048. + CRPIX1_CCD)
+    time_recorded = T.datetime.strptime(T_REC, '%Y.%m.%d_%H:%M:%S_TAI')
 
+    for c in ["hmi"]:
+        filename = sharp_data['segments'][0]['values'][image_idx]
+        url = "http://jsoc.stanford.edu"+filename
+        try:
+            photosphere_image = fits.open(url)        # download the data
+        except Exception as e:
+            print "Error downloading HMI image, ", T_REC
+            print e.message
+            continue
+        if (CROTA2_CCD > 5.0):
+            print "The HMI camera rotation angle is",CROTA2_CCD,". Rotating HMI images."
+            photosphere_image[1].data = np.rot90(photosphere_image[1].data,2)
 
-    subdata_filename = "f{:06}.pickle".format(image_idx)
-    subdata_frame = {
-        't' : time_recorded,
-        'x1' : ccd_x1,
-        'x2' : ccd_x2,
-        'y1' : ccd_y1,
-        'y2' : ccd_y2,
-        'filename' : subdata_filename
-    }
-    subdata_archive["hmi"].append(subdata_frame)
-    with open(archive_path + subdata_filename,"w") as fp:
-        subdata = sharp_data['segments'][0]['values'][image_idx]
-        print type(subdata)
-        exit()
-
-        pickle.dump(subdata, fp, protocol=-1)
+        subdata_filename = "f{:06}.pickle".format(image_idx)
+        subdata_frame = {
+            't' : time_recorded,
+            'x1' : ccd_x1,
+            'x2' : ccd_x2,
+            'y1' : ccd_y1,
+            'y2' : ccd_y2,
+            'filename' : subdata_filename
+        }
+        subdata_archive["hmi"].append(subdata_frame)
+        with open(hmi_archive_path + subdata_filename,"w") as fp:
+            subdata = photosphere_image[1].data
+            pickle.dump(subdata, fp, protocol=-1)
 
 
 
