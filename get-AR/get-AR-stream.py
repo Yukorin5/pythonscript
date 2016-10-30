@@ -36,8 +36,6 @@ def vmax_of_wavelength(w):
 
 url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=hmi.sharp_720s[{}][]&op=rs_list&key=T_REC,CRPIX1,CRPIX2,CROTA2,CDELT1&seg=magnetogram".format(harp_num)
 
-# url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=hmi.sharp_720s[1449][2012.03.06_23:29:06_TAI]&op=rs_list&key=T_REC,CRPIX1,CRPIX2,CROTA2,CDELT1&seg=magnetogram"
-
 response = urllib.urlopen(url)
 data = json.loads(response.read())
 filename = data['segments'][0]['values'][0]
@@ -53,6 +51,10 @@ if len(sys.argv)>=3:
 subdata_archive = {}
 for w in wavelengths:
     subdata_archive[w] = []
+def archive_path_of_wavelength(w):
+    return "HARP{}-aia{:04}/".format(harp_num, w)
+
+
 
 for image_idx in range(starting_index,num_images):
     print image_idx, "/", num_images
@@ -66,6 +68,9 @@ for image_idx in range(starting_index,num_images):
     YDIM_CCD = float(data['segments'][0]['dims'][image_idx].rsplit('x', 1)[1])
 
     for wavelength in wavelengths:
+        archive_path = archive_path_of_wavelength(wavelength)
+        subprocess.call("mkdir -p " + archive_path)
+
         cadence = cadence_of_wavelength(wavelength)
         url = "http://jsoc.stanford.edu/cgi-bin/ajax/jsoc_info?ds=aia.lev1[{t}/{c}s][?WAVELNTH={w}?]&op=rs_list&key=T_REC,CROTA2,CDELT1,CDELT2,CRPIX1,CRPIX2,CRVAL1,CRVAL2&seg=image_lev1".format(t=T_REC, w=wavelength, c = cadence)
 
@@ -91,7 +96,7 @@ for image_idx in range(starting_index,num_images):
             print e.message
             continue
 
-        T_REC = data_aia['keywords'][0]['values'][0]
+        T_REC_AIA = data_aia['keywords'][0]['values'][0]
         CROTA2_AIA = float(data_aia['keywords'][1]['values'][0])
         CDELT1_AIA = float(data_aia['keywords'][2]['values'][0])
         CDELT2_AIA = float(data_aia['keywords'][3]['values'][0])
@@ -105,7 +110,7 @@ for image_idx in range(starting_index,num_images):
         chromosphere_image.verify("fix")
         exptime = chromosphere_image[1].header['EXPTIME']
         if exptime <=0:
-            print "Non-positive exptime for WL = ", wavelength, "T = ", T_REC
+            print "Non-positive exptime for WL = ", wavelength, "T = ", T_REC_AIA
             continue
 
         chromosphere_image[1].data /= exptime
@@ -119,9 +124,11 @@ for image_idx in range(starting_index,num_images):
         ccd_y2 = int(2048. + CRPIX1_CCD*(ratio)+1)
         subdata = chromosphere_image[1].data[ccd_x1:ccd_x2, ccd_y1:ccd_y2]
 
-        time_recorded = T.datetime.strptime(T_REC, '%Y-%m-%dT%H:%M:%SZ')
+        time_recorded = T.datetime.strptime(T_REC_AIA, '%Y-%m-%dT%H:%M:%SZ')
 
         print "WL = ", wavelength, "T = ", time_recorded, "EXPTIME = ", exptime, "({}:{} , {}:{})".format(ccd_x1,ccd_x2, ccd_y1, ccd_y2)
+
+        subdata_filename = "f{:06}.pickle".format(len(subdata_archive[wavelength]))
 
         subdata_frame = {
             't' : time_recorded,
@@ -129,21 +136,24 @@ for image_idx in range(starting_index,num_images):
             'x2' : ccd_x2,
             'y1' : ccd_y1,
             'y2' : ccd_y2,
-            'data' : subdata
+            'filename' : subdata_filename
         }
         subdata_archive[wavelength].append(subdata_frame)
+
+        with open(archive_path + subdata_filename,"w") as fp:
+            pickle.dump(subdata, fp, protocol=-1)
 
         if plot_mode:
             sdoaia_cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
             plt.imshow(subdata,cmap=sdoaia_cmap,origin='lower',vmin=0,vmax=vmax_of_wavelength(wavelength))
             print 'The dimensions of this image are',subdata.shape[0],'by',subdata.shape[1],'.'
-            plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, wavelength, T_REC))
+            plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, wavelength, T_REC_AIA))
             cbaxes = plt.gcf().add_axes([0.8, 0.1, 0.03, 0.8])
             plt.colorbar(cax=cbaxes)
             plt.savefig("frames/HARP{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
             plt.close("all")
 
 for w in wavelengths:
-    fn = "HARP{}-aia{:04}.pickle".format(harp_num, w)
+    fn = archive_path_of_wavelength(w) + "index.pickle"
     with open(fn,"w") as fp:
         pickle.dump(subdata_archive[w], fp, protocol=-1)
