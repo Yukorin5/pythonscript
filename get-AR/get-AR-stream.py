@@ -150,8 +150,9 @@ for image_idx in range(starting_index,num_images):
         if exptime <=0:
             print "Non-positive exptime for WL = ", wavelength, "T = ", T_REC_AIA
             continue
-
-        aia_image[1].data /= exptime
+        def to_count_per_second(x):
+            return (x.astype(np.float32) / exptime).astype(x.dtype)
+        aia_image[1].data = to_count_per_second(aia_image[1].data)
 
         if (CROTA2_AIA > 5.0):
             print "The AIA camera rotation angle is",CROTA2_AIA,". Rotating AIA image."
