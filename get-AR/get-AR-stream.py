@@ -50,8 +50,8 @@ for c in channels:
     subdata_archive[c] = []
 def archive_path_of_channel(c):
     if c=="hmi":
-        return "HARP{}-hmi/".format(harp_num, c)
-    return "HARP{}-aia{:04}/".format(harp_num, c)
+        return "harp{}-hmi/".format(harp_num, c)
+    return "harp{}-aia{:04}/".format(harp_num, c)
 
 
 hmi_archive_path = archive_path_of_channel("hmi")
@@ -189,7 +189,7 @@ for image_idx in range(starting_index,num_images):
             plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, wavelength, T_REC_AIA))
             cbaxes = plt.gcf().add_axes([0.8, 0.1, 0.03, 0.8])
             plt.colorbar(cax=cbaxes)
-            plt.savefig("frames/HARP{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
+            plt.savefig("frames/harp{}-aia{:04}-f{:06}.png".format(harp_num, wavelength, image_idx))
             plt.close("all")
 
 for c in channels:
