@@ -50,8 +50,8 @@ for c in channels:
     subdata_archive[c] = []
 def archive_path_of_channel(c):
     if c=="hmi":
-        return "harp{}-hmi/".format(harp_num, c)
-    return "harp{}-aia{:04}/".format(harp_num, c)
+        return "harp/{}-hmi/".format(harp_num, c)
+    return "harp/{}-aia{:04}/".format(harp_num, c)
 
 
 hmi_archive_path = archive_path_of_channel("hmi")
