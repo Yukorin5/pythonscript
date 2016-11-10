@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# AIA画像を取得する方法、およびnumpyのｔ配列データとしてアクセスする方法を示すサンプルです。
+# HMI nuggetsの記事を参考にしました http://nbviewer.ipython.org/github/mbobra/calculating-spaceweather-keywords/blob/master/feature_extraction.ipynb
+#
+
 import matplotlib
 matplotlib.use('Agg')
 import json, urllib, numpy as np, matplotlib.pylab as plt, matplotlib.ticker as mtick
