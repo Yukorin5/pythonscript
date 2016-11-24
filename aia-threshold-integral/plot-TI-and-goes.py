@@ -40,7 +40,9 @@ for t_day in pd.date_range(time_begin,time_end, freq=datetime.timedelta(days=1))
             plot_y.append(goes_value)
             plot_y_max.append(goes_value_max)
 
-# print plot_x, plot_y
+plot_xy = []
+for i in range(len(plot_x)):
+    plot_xy.append((plot_x[i], plot_y[i]))
 
 plt.rcParams['figure.figsize'] = (12.8,9.6)
 plt.subplot2grid((1,1),(0,0), colspan=1, rowspan=1)
@@ -64,9 +66,68 @@ plt.gca().set_xlabel("AIA 193nm thresholded sum ({})".format(threshold_value))
 plt.gca().set_ylabel("GOES 1-8A 24hour future max")
 filename = "TI-vs-goes-max-{}.png".format(threshold_value)
 
-
 plt.savefig(filename, dpi=100)
 plt.close("all")
+
+def tss_for_threshold(prediction_threshold, flare_threshold):
+    n_tp = 0
+    n_fp = 0
+    n_fn = 0
+    n_tn = 0
+
+    for x,y in plot_xy:
+        if x<prediction_threshold:
+            if y<flare_threshold:
+                n_tn+=1
+            else:
+                n_fn+=1
+        else:
+            if y<flare_threshold:
+                n_fp+=1
+            else:
+                n_tp+=1
+    tss = n_tp/(n_tp + n_fn+1e-16) - n_fp/(n_fp + n_tn+1e-16)
+    return tss
+
+def visualize_tss(flare_class, prediction_threshold, flare_threshold,tss):
+    hits_x = []
+    hits_y = []
+    miss_x = []
+    miss_y = []
+
+    for x,y in plot_xy:
+        if (x>=prediction_threshold) == (y>=flare_threshold):
+            hits_x.append(x)
+            hits_y.append(y)
+        else:
+            miss_x.append(x)
+            miss_y.append(y)
+
+    plt.rcParams['figure.figsize'] = (12.8,9.6)
+    plt.subplot2grid((1,1),(0,0), colspan=1, rowspan=1)
+    plt.plot(miss_x, miss_y, 'mo',markersize=1.0, markeredgecolor='r')
+    plt.plot(hits_x, hits_y, 'mo',markersize=1.0, markeredgecolor='b')
+    plt.gca().set_xscale('log')
+    plt.gca().set_yscale('log')
+    plt.gca().set_xlabel("AIA 193nm thresholded sum ({})".format(threshold_value))
+    plt.gca().set_ylabel("GOES 1-8A 24hour future max")
+    filename = "Flarepredict-{}-{}.png".format(flare_class, threshold_value)
+    plt.title("{}-class flare prediction with TI({}) : TSS = {}".format(flare_class, threshold_value, tss))
+
+    plt.savefig(filename, dpi=100)
+    plt.close("all")
+
+for flare_class, flare_threshold in [("C",1e-6), ("M",1e-5), ("X",1e-4)]:
+    best_tss = -1; best_prediction_threshold = None
+
+    for ptpower in range(0,700):
+        prediction_threshold = 10.0 ** (ptpower/100.0)
+        tss = tss_for_threshold(prediction_threshold, flare_threshold)
+        if tss > best_tss:
+            best_tss = tss
+            best_prediction_threshold = prediction_threshold
+
+    visualize_tss(flare_class, prediction_threshold, flare_threshold, tss)
 
 exit()
 
