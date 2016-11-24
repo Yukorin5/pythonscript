@@ -13,8 +13,8 @@ import pandas as pd
 import observational_data as obs
 
 
-time_begin = datetime.datetime(2011,1,1,00,00)
-time_end   = datetime.datetime(2016,1,1,00,00)
+time_begin = datetime.datetime(2011,01,01,00,00)
+time_end   = datetime.datetime(2016,01,01,00,00)
 
 plot_x = []
 plot_y = []
@@ -23,9 +23,13 @@ plot_y_max = []
 threshold_value = int(sys.argv[1])
 
 for t_day in pd.date_range(time_begin,time_end, freq=datetime.timedelta(days=1)):
-    threshold_integral_file = obs.data_path + t_day.strftime('/aia0193_work/%Y/%m/%d/TI.pickle')
-    with open(threshold_integral_file,"r") as fp:
-        ti_data = pickle.load(fp)
+    try:
+        threshold_integral_file = obs.data_path + t_day.strftime('/aia0193_work/%Y/%m/%d/TI.pickle')
+        with open(threshold_integral_file,"r") as fp:
+            ti_data = pickle.load(fp)
+    except:
+        # there was no file
+        continue
     
     for t in pd.date_range(t_day,t_day+datetime.timedelta(days=1), freq=datetime.timedelta(minutes=12)):
         if t in ti_data:
@@ -35,7 +39,6 @@ for t_day in pd.date_range(time_begin,time_end, freq=datetime.timedelta(days=1))
             plot_x.append(aia_ti_value)
             plot_y.append(goes_value)
             plot_y_max.append(goes_value_max)
-
 
 # print plot_x, plot_y
 

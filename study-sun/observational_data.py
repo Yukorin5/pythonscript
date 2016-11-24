@@ -194,3 +194,56 @@ def goes_max_for_secondrange(delta, start ,end):
     return  max(goes_max_for_secondrange(delta/2, start, box0),
                 bm_mid,
                 goes_max_for_secondrange(delta/2, box1, end))
+
+# t から　timedeltaの時間のあいだのgoes X線フラックスの平均を返します。
+def get_goes_average(t, timedelta):
+    ret = get_goes_sum(t, timedelta)
+    if ret.imag <= 0:
+        return None
+    return ret.real / ret.imag
+
+# t から　timedeltaの時間のあいだのgoes X線フラックスの和と件数を複素数で返します。
+def get_goes_sum(t, timedelta):
+    i = int((t - goes_max_epoch).total_seconds())
+    j = int((t - goes_max_epoch + timedelta).total_seconds())
+    start=min(i,j)
+    end  =max(i,j)
+    delta=1;
+    while delta < end:
+        delta*=2
+    return goes_sum_for_secondrange(delta,start, end)
+
+
+global goes_sum_for_secondrange_memo
+goes_sum_for_secondrange_memo={}
+def goes_sum_for_secondrange(delta, start ,end):
+    global goes_sum_for_secondrange_memo
+
+    box0 = delta*(int(start + delta-1)/int(delta))
+    box1 = delta*(int(end)/int(delta))
+    key = (start,end)
+
+
+    if start >= end:
+        return 0
+    if end-start < 60:
+        t = goes_max_epoch + datetime.timedelta(seconds = (int(start)/60)*60)
+        ret = get_goes_flux(t)
+        if ret is None:
+            return 0
+        return ret + 1j
+    if key in goes_sum_for_secondrange_memo:
+        return goes_sum_for_secondrange_memo[key]
+
+    if box0 > box1:
+        return goes_sum_for_secondrange(delta/2, start, end)
+    if box0 == box1:
+        return sum([goes_sum_for_secondrange(delta/2, start, box0),
+                    goes_sum_for_secondrange(delta/2, box0, end)])
+    bm_mid = sum([goes_sum_for_secondrange(delta/2, box0, box0+delta/2)
+                  ,goes_sum_for_secondrange(delta/2, box0+delta/2, box1)])
+    goes_sum_for_secondrange_memo[(box0, box1)]=bm_mid
+
+    return  sum([goes_sum_for_secondrange(delta/2, start, box0),
+                 bm_mid,
+                 goes_sum_for_secondrange(delta/2, box1, end)])
