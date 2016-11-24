@@ -30,12 +30,12 @@ for t_day in pd.date_range(time_begin,time_end, freq=datetime.timedelta(days=1))
     except:
         # there was no file
         continue
-    
+
     for t in pd.date_range(t_day,t_day+datetime.timedelta(days=1), freq=datetime.timedelta(minutes=12)):
         if t in ti_data:
             aia_ti_value = ti_data[t][threshold_value]
-            goes_value = obs.get_goes_average(t, datetime.timedelta(days=1))            
-            goes_value_max = obs.get_goes_max(t, datetime.timedelta(days=1))            
+            goes_value = obs.get_goes_average(t, datetime.timedelta(days=1))
+            goes_value_max = obs.get_goes_max(t, datetime.timedelta(days=1))
             plot_x.append(aia_ti_value)
             plot_y.append(goes_value)
             plot_y_max.append(goes_value_max)
@@ -71,38 +71,39 @@ plt.close("all")
 exit()
 
 
-# goes fluxをプロットします
-plt.subplot2grid((6,10),(4,1),colspan=9)
+def plot_horizontal_graph():
+    # goes fluxをプロットします
+    plt.subplot2grid((6,10),(4,1),colspan=9)
 
-plt.gca().set_yscale('log')
-plt.plot(goes_flux_t,goes_flux_y,'b')
-plt.gca().set_ylim([1e-7, 1e-3])
-plt.gca().set_xlabel('Time (TAI)')
-plt.gca().set_ylabel('GOES X-ray flux (W/m^2)')
+    plt.gca().set_yscale('log')
+    plt.plot(goes_flux_t,goes_flux_y,'b')
+    plt.gca().set_ylim([1e-7, 1e-3])
+    plt.gca().set_xlabel('Time (TAI)')
+    plt.gca().set_ylabel('GOES X-ray flux (W/m^2)')
 
-dayLocator  = mdates.DayLocator()  
-hourLocator = mdates.HourLocator()  
-daysFmt = mdates.DateFormatter('%Y-%m-%d')
-plt.gca().xaxis.set_major_locator(dayLocator)
-plt.gca().xaxis.set_major_formatter(daysFmt)
-plt.gca().xaxis.set_minor_locator(hourLocator)
-plt.gca().grid()
-plt.gcf().autofmt_xdate()
+    dayLocator  = mdates.DayLocator()
+    hourLocator = mdates.HourLocator()
+    daysFmt = mdates.DateFormatter('%Y-%m-%d')
+    plt.gca().xaxis.set_major_locator(dayLocator)
+    plt.gca().xaxis.set_major_formatter(daysFmt)
+    plt.gca().xaxis.set_minor_locator(hourLocator)
+    plt.gca().grid()
+    plt.gcf().autofmt_xdate()
 
-# AIA fluxをプロットします
-plt.subplot2grid((6,10),(5,1),colspan=9)
+    # AIA fluxをプロットします
+    plt.subplot2grid((6,10),(5,1),colspan=9)
 
-# plt.gca().set_yscale('log')
-plt.plot(aia_flux_t,aia_flux_y,'r')
-plt.plot([t, t], [0, 1], color='k', linestyle='-', linewidth=2)
-plt.gca().set_xlabel('Time (TAI)')
-plt.gca().set_ylabel('AIA Thresholded integral')
+    # plt.gca().set_yscale('log')
+    plt.plot(aia_flux_t,aia_flux_y,'r')
+    plt.plot([t, t], [0, 1], color='k', linestyle='-', linewidth=2)
+    plt.gca().set_xlabel('Time (TAI)')
+    plt.gca().set_ylabel('AIA Thresholded integral')
 
-dayLocator  = mdates.DayLocator()  
-hourLocator = mdates.HourLocator()  
-daysFmt = mdates.DateFormatter('%Y-%m-%d')
-plt.gca().xaxis.set_major_locator(dayLocator)
-plt.gca().xaxis.set_major_formatter(daysFmt)
-plt.gca().xaxis.set_minor_locator(hourLocator)
-plt.gca().grid()
-plt.gcf().autofmt_xdate()
+    dayLocator  = mdates.DayLocator()
+    hourLocator = mdates.HourLocator()
+    daysFmt = mdates.DateFormatter('%Y-%m-%d')
+    plt.gca().xaxis.set_major_locator(dayLocator)
+    plt.gca().xaxis.set_major_formatter(daysFmt)
+    plt.gca().xaxis.set_minor_locator(hourLocator)
+    plt.gca().grid()
+    plt.gcf().autofmt_xdate()
