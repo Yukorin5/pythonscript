@@ -146,10 +146,6 @@ for image_idx in range(starting_index,num_images):
         ratio = (CDELT1_CCD)/(CDELT1_AIA)
 
         aia_image.verify("fix")
-        quality = aia_image[1].header['QUALITY']
-        if quality !=0:
-            print "Bad quality image"
-            continue
         exptime = aia_image[1].header['EXPTIME']
         if exptime <=0:
             print "Non-positive exptime for WL = ", wavelength, "T = ", T_REC_AIA
