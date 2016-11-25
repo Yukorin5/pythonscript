@@ -42,7 +42,7 @@ for t_day in pd.date_range(time_begin,time_end, freq=datetime.timedelta(days=1))
 
 plot_xy = []
 for i in range(len(plot_x)):
-    plot_xy.append((plot_x[i], plot_y[i]))
+    plot_xy.append((plot_x[i], plot_y_max[i]))
 
 plt.rcParams['figure.figsize'] = (12.8,9.6)
 plt.subplot2grid((1,1),(0,0), colspan=1, rowspan=1)
