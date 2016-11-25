@@ -52,8 +52,8 @@ for day_add in xrange(366*6):
         threshold_integrals = {}
         for threshold in xrange(0,10000,100):
             y = np.sum(np.maximum(0, img.data - threshold))
-            threshold_integrals[threshold] = float(y)
-        print t, threshold_integrals
+            threshold_integrals[threshold] = float(y) 
+       print t, threshold_integrals
     
         ret[t] = threshold_integrals
     
