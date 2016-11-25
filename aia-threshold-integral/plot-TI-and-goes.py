@@ -127,7 +127,7 @@ for flare_class, flare_threshold in [("C",1e-6), ("M",1e-5), ("X",1e-4)]:
             best_tss = tss
             best_prediction_threshold = prediction_threshold
 
-    visualize_tss(flare_class, prediction_threshold, flare_threshold, tss)
+    visualize_tss(flare_class, best_prediction_threshold, flare_threshold, best_tss)
 
 exit()
 
