@@ -117,17 +117,25 @@ def visualize_tss(flare_class, prediction_threshold, flare_threshold,tss):
     plt.savefig(filename, dpi=100)
     plt.close("all")
 
+message = ""
 for flare_class, flare_threshold in [("C",1e-6), ("M",1e-5), ("X",1e-4)]:
     best_tss = -1; best_prediction_threshold = None
 
-    for ptpower in range(0,700):
+    for ptpower in range(0,800):
         prediction_threshold = 10.0 ** (ptpower/100.0)
         tss = tss_for_threshold(prediction_threshold, flare_threshold)
+        print "testing: ", prediction_threshold, " TSS = ", tss
         if tss > best_tss:
             best_tss = tss
             best_prediction_threshold = prediction_threshold
 
     visualize_tss(flare_class, best_prediction_threshold, flare_threshold, best_tss)
+    message += "{}-class flare prediction with TI({}) : TSS = {} when prediction threshold = {}\n".format(flare_class, threshold_value, best_tss, best_prediction_threshold)
+
+filename = "Prediction-TI-{}.txt".format(threshold_value)
+with open(filename,'w') as fp:
+    fp.write(message)
+
 
 exit()
 
