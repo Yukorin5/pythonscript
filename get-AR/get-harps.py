@@ -18,7 +18,6 @@ while True:
         for h in remains:
             fp.write(h+"\n")
 
-    print (["python", "get-AR-stream.py", harp])
     subprocess.call(["python", "get-AR-stable.py", harp])
     subprocess.call("scp -r harp/* tsubame:/work1/t2g-16IAS/harp/",shell=True)
     subprocess.call("rm -rf harp/*",shell=True)
