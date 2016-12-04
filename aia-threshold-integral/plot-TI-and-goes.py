@@ -14,7 +14,7 @@ import observational_data as obs
 
 
 time_begin = datetime.datetime(2011,01,01,00,00)
-time_end   = datetime.datetime(2012,01,01,00,00)
+time_end   = datetime.datetime(2016,01,01,00,00)
 
 plot_x = []
 plot_y = []
