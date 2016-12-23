@@ -34,6 +34,7 @@ def load_goes(fn):
             if con=='':
                 break
             ws = con.split(',')
+            #t = time.Time(ws[0].split()[0]).datetime
             t = time.Time(ws[0]).datetime
             if fmt_mode == "oldls":
                 ret[t] = float(ws[1])
@@ -49,7 +50,11 @@ history = {}
 
 files = sorted(glob.glob("xray-*.csv"))
 
-files2 = [files[0], files[-1]]
+files2 = []
+for fn in files:
+    if "1988-01" in fn or "2016-03" in fn:
+        files2.append(fn)
+files2=files
 
 for fn in files2:
     h = load_goes(fn)
@@ -61,7 +66,7 @@ for fn in files2:
 
 
 
-plt.rcParams['figure.figsize'] = (20,1)
+plt.rcParams['figure.figsize'] = (120,6)
 
 daysFmt  = mdates.DateFormatter('%Y-%m-%d')
 yearLoc  = mdates.YearLocator()
@@ -74,6 +79,10 @@ plt.gcf().autofmt_xdate()
 plt.gca().set_title('GOES Flux')
 plt.gca().set_xlabel('International Atomic Time')
 plt.gca().set_ylabel(u'GOES Long[1-8Å] Xray Flux')
+plt.gca().set_yscale('log')
 
-plt.savefig("history-of-goes.png", dpi=600)
+
+plt.scatter(list(history.keys()), list(history.values()),marker='.',edgecolors="face")
+plt.ylim([1e-7,1e-3])
+plt.savefig("history-of-goes.png", dpi=100)
 plt.close('all')
