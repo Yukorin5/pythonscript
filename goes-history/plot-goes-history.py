@@ -1,9 +1,11 @@
 import matplotlib as mpl
 mpl.use('Agg')
-import matplotlib.pyplot as plt
+
 
 import astropy.time as time
 import glob
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import os
 import sys
 
@@ -73,5 +75,5 @@ plt.gca().set_title('GOES Flux')
 plt.gca().set_xlabel('International Atomic Time')
 plt.gca().set_ylabel(u'GOES Long[1-8Å] Xray Flux')
 
-plt.savefig(fn_png, dpi=600)
+plt.savefig("history-of-goes.png", dpi=600)
 plt.close('all')
