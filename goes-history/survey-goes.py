@@ -3,7 +3,8 @@ import datetime
 import urllib.request as request
 
 print("yyyy | mm | active goes")
-for y in range(1986,2017):
+#for y in range(1986,2017):
+for y in range(2008,2017):
     for m in range(1,13):
         buf = "{} | {:02} |".format(y,m)
         for goes_id in range(6,16):
