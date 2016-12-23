@@ -7,6 +7,7 @@ import glob
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import os
+import pickle
 import sys
 
 
@@ -37,11 +38,14 @@ def load_goes(fn):
             #t = time.Time(ws[0].split()[0]).datetime
             t = time.Time(ws[0]).datetime
             if fmt_mode == "oldls":
-                ret[t] = float(ws[1])
+                if len(ws)> 1:
+                    ret[t] = float(ws[1])
             elif fmt_mode == "oldsl":
-                ret[t] = float(ws[2])
+                if len(ws)> 2:
+                    ret[t] = float(ws[2])
             elif fmt_mode == "new":
-                ret[t] = float(ws[6])
+                if len(ws)> 6:
+                    ret[t] = float(ws[6])
             else:
                 raise Exception("unknown format codename " + fmt_mode)
     return ret
@@ -64,7 +68,7 @@ for fn in files2:
         else:
             history[t] = max(x, history[t])
 
-
+pickle.dump(history,"history.pickle",protocol=-1)
 
 plt.rcParams['figure.figsize'] = (120,6)
 
