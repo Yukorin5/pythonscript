@@ -52,7 +52,7 @@ def load_goes(fn):
 
 history = {}
 
-files = sorted(glob.glob("xray-*.csv"))
+files = sorted(glob.glob("goes-data/xray-*.csv"))
 
 files2 = []
 for fn in files:
@@ -68,7 +68,8 @@ for fn in files2:
         else:
             history[t] = max(x, history[t])
 
-pickle.dump(history,"history.pickle",protocol=-1)
+with open("history.pickle","wb") as fp:
+    pickle.dump(history,fp,protocol=-1)
 
 plt.rcParams['figure.figsize'] = (120,6)
 
@@ -90,3 +91,15 @@ plt.scatter(list(history.keys()), list(history.values()),marker='.',edgecolors="
 plt.ylim([1e-7,1e-3])
 plt.savefig("history-of-goes.png", dpi=100)
 plt.close('all')
+
+# Watch out for following error
+#
+# reading xray-2010-06-goes14.csv...
+# Traceback (most recent call last):
+#   File "plot-goes-history.py", line 60, in <module>
+#     h = load_goes(fn)
+#   File "plot-goes-history.py", line 44, in load_goes
+#     ret[t] = float(ws[6])
+# IndexError: list index out of range
+#
+# The file is truncated!
