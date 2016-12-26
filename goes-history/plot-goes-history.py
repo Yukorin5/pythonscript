@@ -1,7 +1,6 @@
+#!/usr/bin/env python
 import matplotlib as mpl
 mpl.use('Agg')
-
-
 import astropy.time as time
 import glob
 import matplotlib.dates as mdates
@@ -10,14 +9,15 @@ import os
 import pickle
 import sys
 
-
+full_plot_mode = True
+pickle_file = "final/history.pickle"
 def load_goes(fn):
     sys.stderr.write("reading {}...\n".format(fn))
     ret = {}
     with (open(fn, "r")) as fp:
         while True:
             con = fp.readline()
-            if con[0:5]=='data:':
+            if con[0:5] == 'data:':
                 break
         fmtstr = fp.readline()
 
@@ -32,49 +32,55 @@ def load_goes(fn):
 
         while True:
             con = fp.readline()
-            if con=='':
+            if con == '':
                 break
             ws = con.split(',')
-            #t = time.Time(ws[0].split()[0]).datetime
+            # t = time.Time(ws[0].split()[0]).datetime
             t = time.Time(ws[0]).datetime
             if fmt_mode == "oldls":
-                if len(ws)> 1:
+                if len(ws) > 1:
                     ret[t] = float(ws[1])
             elif fmt_mode == "oldsl":
-                if len(ws)> 2:
+                if len(ws) > 2:
                     ret[t] = float(ws[2])
             elif fmt_mode == "new":
-                if len(ws)> 6:
+                if len(ws) > 6:
                     ret[t] = float(ws[6])
             else:
                 raise Exception("unknown format codename " + fmt_mode)
     return ret
 
+
 history = {}
 
 files = sorted(glob.glob("goes-data/xray-*.csv"))
 
-files2 = []
-for fn in files:
-    if "1988-01" in fn or "2016-03" in fn:
-        files2.append(fn)
-files2=files
+if full_plot_mode:
+    files2 = []
+else:
+    files2 = files
+    for fn in files:
+        if "1996" in fn:
+            files2.append(fn)
+if full_plot_mode and os.path.exists(pickle_file):
+    with open(pickle_file, "rb") as fp:
+        history = pickle.load(fp)
+else:
+    for fn in files2:
+        h = load_goes(fn)
+        for t, x in h.items():
+            if t not in history:
+                history[t] = x
+            else:
+                history[t] = max(x, history[t])
 
-for fn in files2:
-    h = load_goes(fn)
-    for t,x in h.items():
-        if t not in history:
-            history[t] = x
-        else:
-            history[t] = max(x, history[t])
+    with open("history.pickle", "wb") as fp:
+        pickle.dump(history, fp, protocol=-1)
 
-with open("history.pickle","wb") as fp:
-    pickle.dump(history,fp,protocol=-1)
+plt.rcParams['figure.figsize'] = (120, 6)
 
-plt.rcParams['figure.figsize'] = (120,6)
-
-daysFmt  = mdates.DateFormatter('%Y-%m-%d')
-yearLoc  = mdates.YearLocator()
+daysFmt = mdates.DateFormatter('%Y-%m-%d')
+yearLoc = mdates.YearLocator()
 monthLoc = mdates.MonthLocator()
 plt.gca().xaxis.set_major_locator(yearLoc)
 plt.gca().xaxis.set_major_formatter(daysFmt)
@@ -87,8 +93,9 @@ plt.gca().set_ylabel(u'GOES Long[1-8Å] Xray Flux')
 plt.gca().set_yscale('log')
 
 
-plt.scatter(list(history.keys()), list(history.values()),marker='.',edgecolors="face")
-plt.ylim([1e-7,1e-3])
+plt.scatter(list(history.keys()), list(history.values()),
+            marker='.', edgecolors="face")
+plt.ylim([1e-9, 1e-3])
 plt.savefig("history-of-goes.png", dpi=100)
 plt.close('all')
 
@@ -103,3 +110,5 @@ plt.close('all')
 # IndexError: list index out of range
 #
 # The file is truncated!
+#
+# Full plot requires 180 minutes.
