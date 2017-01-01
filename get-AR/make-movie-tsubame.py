@@ -19,6 +19,7 @@ harp_num = int(sys.argv[1])
 wavelengths=[94,193,1600]
 channels=["hmi"]+wavelengths
 ufcorin_bigdata_path = os.environ.get("ufcorin_bigdata_path")
+pylab.rcParams['figure.figsize']=(16.0, 9.0)
 
 def vmin_of_channel(c):
     if c=="hmi": return -300
@@ -81,7 +82,7 @@ for c in channels:
         ssx, ssy = subdata.shape
         x = (canvas_x-ssx)/2
         y = (canvas_y-ssy)/2
-        canvas[x:,y:] = subdata
+        canvas[x:x+ssx,y:y+ssy] = subdata
 
         if c=="hmi":
             sdoaia_cmap = plt.get_cmap('hmimag')

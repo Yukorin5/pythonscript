@@ -11,7 +11,7 @@ global data_path
 data_path = os.environ['ufcorin_bigdata_path']
 global offline_mode
 
-offline_mode = False
+offline_mode = 'ufcorin_online' in os.environ and os.environ['ufcorin_online'] != '0' and os.environ['ufcorin_online'] != ''
 
 
 # 時刻tにおける太陽磁場画像を取得します
@@ -51,7 +51,10 @@ def get_aia_image(wavelength,t):
     cache_fn = data_path + '/aia{:04}/'.format(wavelength) + t.strftime('%Y/%m/%d/%H%M.fits').replace('/',os.sep)
     if os.path.exists(cache_fn):
         try:
-            return sunpy.map.Map(cache_fn)
+            m = sunpy.map.Map(cache_fn)
+            if m.meta["quality"] != 0:
+                return None
+            return m
         except:
             return None
 
