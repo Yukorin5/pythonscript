@@ -1,3 +1,6 @@
+# c.f.
+# http://matplotlib.org/examples/event_handling/pick_event_demo.html
+
 from matplotlib.pyplot import figure, show
 import numpy as npy
 from numpy.random import rand
