@@ -16,7 +16,7 @@ class SolarRegionData:
 
         self.datetime = datetime.datetime(
             t_year, t_month, t_day, t_hour, t_minute)
-        self.magnetic_classification = l[20:24].strip()
+        self.magnetic_class = l[20:24].strip()
 
         arno_str = l[33:38]
         if arno_str == " ////":
@@ -77,6 +77,18 @@ class ActiveRegion:
         for t,xs in daily_area.items():
             self.area_history[t] = np.median(xs)
 
+        self.magnetic_classes = set()
+        self.magnetic_class_count = {}
+        for r in srdata:
+            c = r.magnetic_class
+            self.magnetic_classes.add(c)
+            if c in self.magnetic_class_count:
+                self.magnetic_class_count[c] += 1
+            else:
+                self.magnetic_class_count[c] = 1
+
+        self.magnetic_class_majority = max([(n,c) for c,n in self.magnetic_class_count.items()])[1]
+
         self.flares = []
 
     def total_area(self):
@@ -98,6 +110,32 @@ class ActiveRegion:
         return 20+4*len(self.flares)
 
     def plot_color(self):
+        return self.plot_color_by_magnetic_class_majority()
+
+    def plot_color_by_magnetic_class_history(self):
+        for c in self.magnetic_classes:
+            if "D" in c:
+                return "red"
+        for c in self.magnetic_classes:
+            if "G" in c:
+                return "yellow"
+        for c in self.magnetic_classes:
+            if "B" in c:
+                return "lime"
+        return "blue"
+
+    def plot_color_by_magnetic_class_majority(self):
+        c = self.magnetic_class_majority
+        if "D" in c:
+            return "red"
+        if "G" in c:
+            return "yellow"
+        if "B" in c:
+            return "lime"
+        return "blue"
+
+
+    def plot_color_by_flare_class(self):
         biggest = max([0] + [f.peak_flux for f in self.flares])
         if biggest >= 1e-4:
             return "red"
@@ -163,6 +201,8 @@ def onpick(event):
     for i in event.ind:
         ar = ar_list[i]
         print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.total_area(), "flare:", ar.total_flare())
+        print(ar.magnetic_class_count)
+
 plt.gcf().canvas.mpl_connect('pick_event', onpick)
 
 plt.show()
