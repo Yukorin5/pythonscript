@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import matplotlib.pyplot as plt
 import numpy as np
 from pprint import pprint
 
@@ -79,16 +80,32 @@ class ActiveRegion:
         self.flares = []
 
     def total_area(self):
+        # in units of millionths of solar hemisphere times day
+
         ret = 0
         for _, a in self.area_history.items():
             ret += a
         return ret
 
     def total_flare(self):
+        # in units of C-class flare equivalent counts
         ret = 0
         for f in self.flares:
             ret += f.peak_flux
-        return ret
+        return ret * 1e6
+
+    def plot_size(self):
+        return 20+4*len(self.flares)
+
+    def plot_color(self):
+        biggest = max([0] + [f.peak_flux for f in self.flares])
+        if biggest >= 1e-4:
+            return "red"
+        elif biggest >= 1e-5:
+            return "green"
+        else:
+            return "blue"
+
 
 region_data = read_solar_region_report("usaf_solar-region-reports_2014.txt")
 
@@ -126,5 +143,26 @@ for f in flare_data:
     if f.noaa_arno is not None:
         ar_data[f.noaa_arno].flares.append(f)
 
-for _, ar in sorted(ar_data.items()):
-    print(ar.noaa_arno, ar.total_area(), ar.total_flare())
+ar_list = [ar for _,ar in sorted(ar_data.items()) if ar.total_area()>0 and ar.total_flare() > 0]
+
+xs = [ar.total_area() for ar in ar_list]
+ys = [ar.total_flare() for ar in ar_list]
+sizes = [ar.plot_size() for ar in ar_list]
+colors = [ar.plot_color() for ar in ar_list]
+plt.gca().set_xscale("log")
+plt.gca().set_yscale("log")
+plt.gca().set_xlabel("AR area in uSH day")
+plt.gca().set_ylabel("Total Flares in C-class equivalent")
+plt.scatter(xs,ys,sizes, colors, picker=True)
+
+def onpick(event):
+    for i in event.ind:
+        ar = ar_list[i]
+        for f in ar.flares:
+            pprint(vars(f))
+    for i in event.ind:
+        ar = ar_list[i]
+        print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.total_area(), "flare:", ar.total_flare())
+plt.gcf().canvas.mpl_connect('pick_event', onpick)
+
+plt.show()
