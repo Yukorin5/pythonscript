@@ -14,16 +14,23 @@ import observational_data as obs
 
 
 time_begin = datetime.datetime(2011,01,01,00,00)
-time_end   = datetime.datetime(2012,01,01,00,00)
+time_end   = datetime.datetime(2014,12,31,00,00)
 
 plot_x = []
 plot_y = []
 plot_y_max = []
 
 threshold_argument = sys.argv[1]
+test_mode = False
 if 'dif' in threshold_argument:
     threshold_value = int(threshold_argument.replace('dif',''))
     threshold_mode = 'dif'
+elif 'test' in threshold_argument:
+    threshold_value = int(threshold_argument.replace('test',''))
+    time_begin = datetime.datetime(2015,8,1,00,00)
+    time_end   = datetime.datetime(2016,12,5,00,00)
+    threshold_mode = 'dif'
+    test_mode = True
 else:
     threshold_value = int(threshold_argument)
     threshold_mode = 'normal'
@@ -59,12 +66,14 @@ for i in range(len(plot_x)):
     plot_xy.append((plot_x[i], plot_y_max[i]))
 
 plt.rcParams['figure.figsize'] = (12.8,9.6)
+plt.rcParams["font.size"] = 48
 plt.subplot2grid((1,1),(0,0), colspan=1, rowspan=1)
+plt.xlim([1,1e9])
 plt.plot(plot_x, plot_y, 'mo',markersize=1.0, markeredgecolor='r')
 plt.gca().set_xscale('log')
 plt.gca().set_yscale('log')
-plt.gca().set_xlabel("AIA 193nm {} thresholded sum ({})".format(threshold_mode, threshold_value))
-plt.gca().set_ylabel("GOES 1-8A 24hour future average")
+#plt.gca().set_xlabel("AIA 193nm {} thresholded sum ({})".format(threshold_mode, threshold_value))
+#plt.gca().set_ylabel("GOES 1-8A 24hour future average")
 filename = "{}-TI-vs-goes-average-{}.png".format(threshold_mode, threshold_value)
 
 
@@ -73,6 +82,7 @@ plt.close("all")
 
 plt.rcParams['figure.figsize'] = (12.8,9.6)
 plt.subplot2grid((1,1),(0,0), colspan=1, rowspan=1)
+plt.xlim([1,1e9])
 plt.plot(plot_x, plot_y_max, 'mo',markersize=1.0, markeredgecolor='r')
 plt.gca().set_xscale('log')
 plt.gca().set_yscale('log')
@@ -123,10 +133,16 @@ def visualize_tss(flare_class, prediction_threshold, flare_threshold,tss):
     plt.plot(hits_x, hits_y, 'mo',markersize=1.0, markeredgecolor='b')
     plt.gca().set_xscale('log')
     plt.gca().set_yscale('log')
-    plt.gca().set_xlabel("AIA 193nm thresholded sum ({})".format(threshold_value))
-    plt.gca().set_ylabel("GOES 1-8A 24hour future max")
+    #plt.gca().set_xlabel("AIA 193nm thresholded sum ({})".format(threshold_value))
+    #plt.gca().set_ylabel("GOES 1-8A 24hour future max")
+    plt.gca().set_xlabel("")
+    plt.gca().set_ylabel("")
     filename = "Flarepredict-{}-{}-{}.png".format(threshold_mode,   threshold_value, flare_class)
-    plt.title("{}-class flare prediction with {} TI({}) : TSS = {}".format(flare_class, threshold_mode, threshold_value, tss))
+    if test_mode:
+        filename = "Test-" + filename
+
+    #plt.title("{}-class flare prediction with {} TI({}) :\n TSS = {}".format(flare_class, threshold_mode, threshold_value, tss))
+    plt.title("")
 
     plt.savefig(filename, dpi=100)
     plt.close("all")
@@ -137,16 +153,29 @@ for flare_class, flare_threshold in [("C",1e-6), ("M",1e-5), ("X",1e-4)]:
 
     for ptpower in range(0,800):
         prediction_threshold = 10.0 ** (ptpower/100.0)
+        if test_mode:
+            if flare_class == "C":
+                prediction_threshold = 645654.0
+            elif flare_class == "M":
+                prediction_threshold = 524807.0
+            else:
+                prediction_threshold = 831763.0
+
         tss = tss_for_threshold(prediction_threshold, flare_threshold)
         print "testing: ", prediction_threshold, " TSS = ", tss
         if tss > best_tss:
             best_tss = tss
             best_prediction_threshold = prediction_threshold
 
+        if test_mode:
+            break
+
     visualize_tss(flare_class, best_prediction_threshold, flare_threshold, best_tss)
     message += "{}-class flare prediction with {} TI({}) : TSS = {} when prediction threshold = {}\n".format(flare_class, threshold_mode, threshold_value, best_tss, best_prediction_threshold)
 
 filename = "Prediction-{}-TI-{}.txt".format(threshold_mode, threshold_value)
+if test_mode:
+    filename = "Test-" + filename
 with open(filename,'w') as fp:
     fp.write(message)
 
