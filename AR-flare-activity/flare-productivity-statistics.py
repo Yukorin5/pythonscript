@@ -113,6 +113,9 @@ class ActiveRegion:
     def time_end(self):
         return max(self.area_history.keys())
 
+    def age_in_days(self):
+        return (self.time_end() - self.time_begin()).days + 1
+
     def integrated_area(self, time_begin=None, time_end=None):
         # in units of millionths of solar hemisphere times day
 
@@ -234,14 +237,14 @@ def onpick(event):
 
 
 # Plot the ARs' area and flare
-xs = [ar.integrated_area() for ar in ar_list]
-ys = [ar.integrated_flare() for ar in ar_list]
+xs = [ar.integrated_area() / ar.age_in_days() for ar in ar_list]
+ys = [ar.integrated_flare() / ar.age_in_days() for ar in ar_list]
 sizes = [ar.plot_size() for ar in ar_list]
 colors = [ar.plot_color() for ar in ar_list]
 plt.gca().set_xscale("log")
 plt.gca().set_yscale("log")
-plt.gca().set_xlabel("AR area in uSH day")
-plt.gca().set_ylabel("Flare score (C-class flare equivalent)")
+plt.gca().set_xlabel("AR area in uSH")
+plt.gca().set_ylabel("Flare score (C-class flare/day)")
 plt.scatter(xs,ys,sizes, colors, picker=True)
 plt.gcf().canvas.mpl_connect('pick_event', onpick)
 plt.grid()
