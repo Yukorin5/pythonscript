@@ -198,7 +198,7 @@ colors = [ar.plot_color() for ar in ar_list]
 plt.gca().set_xscale("log")
 plt.gca().set_yscale("log")
 plt.gca().set_xlabel("AR area in uSH day")
-plt.gca().set_ylabel("Total Flares in C-class equivalent")
+plt.gca().set_ylabel("Flare productivity (C-class flare/uSH/day)")
 plt.scatter(xs,ys,sizes, colors, picker=True)
 
 def onpick(event):
