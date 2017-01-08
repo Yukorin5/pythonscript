@@ -7,8 +7,8 @@ from pprint import pprint
 
 
 class SolarRegionData:
-    def __init__(self, l):
-        t_year = 2000 + int(l[2:4])
+    def __init__(self, century_year, l):
+        t_year = century_year + int(l[2:4])
         t_month = int(l[4:6])
         t_day = int(l[6:8])
         t_hour = int(l[9:11])
@@ -27,16 +27,29 @@ class SolarRegionData:
         self.area = float(l[48:52])
 
 
-def read_solar_region_report(fn):
+def read_solar_region_report(century_year, fn):
     ret = []
     with open(fn, "r") as fp:
         for l in fp.readlines():
-            ret.append(SolarRegionData(l))
+            ret.append(SolarRegionData(century_year, l))
     return ret
 
 
 class GoesFlareData:
-    def __init__(self, l):
+    def __init__(self, century_year, l):
+        t_year = century_year + int(l[5:7])
+        t_month = int(l[7:9])
+        t_day = int(l[9:11])
+        try:
+            t_hour = int(l[23:25])
+            t_minute = int(l[25:27])
+        except:
+            t_hour = 0
+            t_minute = 0
+
+        self.datetime = datetime.datetime(
+            t_year, t_month, t_day, t_hour, t_minute)
+
         arno_str = l[80:85]
         if arno_str.strip() == "":
             self.noaa_arno = None
@@ -49,13 +62,14 @@ class GoesFlareData:
         peak_flux_modifier = float(l[60:63]) / 10.0
 
         self.peak_flux = peak_flux_base[flareclass] * peak_flux_modifier
+        self.class_string = flareclass + "{:02}".format(int(l[60:63]))
 
 
-def read_goes_xrs_report(fn):
+def read_goes_xrs_report(century_year, fn):
     ret = []
     with open(fn, "r") as fp:
         for l in fp.readlines():
-            ret.append(GoesFlareData(l))
+            ret.append(GoesFlareData(century_year, l))
     return ret
 
 
@@ -68,7 +82,9 @@ class ActiveRegion:
         # The history of area by day
         daily_area = {}
         for r in srdata:
+            # set t to be the beginning of that date
             t = r.datetime.date()
+            t = datetime.datetime.combine(t, datetime.time())
             if t in daily_area:
                 daily_area[t].append(r.area)
             else:
@@ -91,18 +107,33 @@ class ActiveRegion:
 
         self.flares = []
 
-    def total_area(self):
+    def time_begin(self):
+        return min(self.area_history.keys())
+
+    def time_end(self):
+        return max(self.area_history.keys())
+
+    def integrated_area(self, time_begin=None, time_end=None):
         # in units of millionths of solar hemisphere times day
 
         ret = 0
-        for _, a in self.area_history.items():
+        for t, a in self.area_history.items():
+            if time_begin is not None and t < time_begin:
+                continue
+            if time_end is not None and t > time_end:
+                continue
             ret += a
         return ret
 
-    def total_flare(self):
+    def integrated_flare(self, time_begin=None, time_end=None):
         # in units of C-class flare equivalent counts
         ret = 0
         for f in self.flares:
+            t = f.datetime
+            if time_begin is not None and t < time_begin:
+                continue
+            if time_end is not None and t > time_end:
+                continue
             ret += f.peak_flux
         return ret * 1e6
 
@@ -148,24 +179,16 @@ class ActiveRegion:
 region_data = []
 flare_data = []
 
+# read the AR and flare observational data
 for y in range(2010, 2016):
-    print("loading region",y)
-    region_data += read_solar_region_report("usaf_solar-region-reports_{}.txt".format(y))
-    print("loading flare",y)
-    flare_data += read_goes_xrs_report("goes-xrs-report_{}.txt".format(y))
+    century_year = int(y/100)*100
+    print("loading region", y)
+    region_data += read_solar_region_report(century_year, "usaf_solar-region-reports_{}.txt".format(y))
+    print("loading flare", y)
+    flare_data += read_goes_xrs_report(century_year, "goes-xrs-report_{}.txt".format(y))
 
-
-# # debug print the region data read
-# for r in region_data:
-#     pprint(vars(r))
-
-
-
-# # debug print the region data read
-# for r in flare_data:
-#     pprint(vars(r))
-
-# sort the data by NOAA_ARNO
+# Sort the AR observation data and create `ar_data`,
+# which is the hash fron NOAA_ARNO to ActiveRegion
 data_by_arno = {}
 for r in region_data:
     noaa_arno = r.noaa_arno
@@ -180,38 +203,62 @@ ar_data = {}
 for noaa_arno, data in data_by_arno.items():
     ar_data[noaa_arno] = ActiveRegion(noaa_arno, data)
 
-# # debug print AR
-# for noaa_arno, ar in sorted(ar_data.items()):
-#     print("NOAA_ARNO: ", noaa_arno)
-#     pprint(vars(ar))
-
+# Append the observational data to their associated
+# active region
 for f in flare_data:
     if f.noaa_arno is not None and f.noaa_arno in ar_data:
         ar_data[f.noaa_arno].flares.append(f)
 
-ar_list = [ar for _,ar in sorted(ar_data.items()) if ar.total_area()>0 and ar.total_flare() > 0]
+ar_list = [ar for _,ar in sorted(ar_data.items()) if ar.integrated_area()>0 and ar.integrated_flare() > 0]
 
-xs = [ar.total_area() for ar in ar_list]
-ys = [ar.total_flare()/ ar.total_area() for ar in ar_list]
+
+# Utility function for computing productivity for AR's half life
+def half_productivity(ar, zenhan):
+    dt = ar.time_end() - ar.time_begin()
+    if zenhan:
+        t0 = ar.time_begin()
+        t1 = ar.time_begin() + dt/2
+    else:
+        t0 = ar.time_begin() + dt/2
+        t1 = ar.time_end()
+    ret = ar.integrated_flare(t0, t1) / ar.integrated_area(t0, t1)
+    return max(1e-5, ret)
+
+# Utility function for picking data
+def onpick(event):
+    for i in event.ind:
+        ar = ar_list[i]
+        print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.integrated_area(), "flare:", ar.integrated_flare())
+        print(ar.magnetic_class_count)
+        print(",".join([f.class_string for f in ar.flares]))
+
+
+# Plot the ARs' area and flare
+xs = [ar.integrated_area() for ar in ar_list]
+ys = [ar.integrated_flare() for ar in ar_list]
 sizes = [ar.plot_size() for ar in ar_list]
 colors = [ar.plot_color() for ar in ar_list]
 plt.gca().set_xscale("log")
 plt.gca().set_yscale("log")
 plt.gca().set_xlabel("AR area in uSH day")
-plt.gca().set_ylabel("Flare productivity (C-class flare/uSH/day)")
+plt.gca().set_ylabel("Flare score (C-class flare equivalent)")
 plt.scatter(xs,ys,sizes, colors, picker=True)
+plt.gcf().canvas.mpl_connect('pick_event', onpick)
+plt.grid()
+plt.show()
 
-def onpick(event):
-    for i in event.ind:
-        ar = ar_list[i]
-        for f in ar.flares:
-            pprint(vars(f))
-    for i in event.ind:
-        ar = ar_list[i]
-        print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.total_area(), "flare:", ar.total_flare())
-        print(ar.magnetic_class_count)
+plt.close("all")
 
-
+# Plot the AR's half productivity
+xs = [half_productivity(ar,True) for ar in ar_list]
+ys = [half_productivity(ar,False) for ar in ar_list]
+sizes = [ar.plot_size() for ar in ar_list]
+colors = [ar.plot_color() for ar in ar_list]
+plt.gca().set_xscale("log")
+plt.gca().set_yscale("log")
+plt.gca().set_xlabel("First-half flare productivity (C-class flare/uSH/day)")
+plt.gca().set_ylabel("Second-half flare productivity (C-class flare/uSH/day)")
+plt.scatter(xs,ys,sizes, colors, picker=True)
 plt.gcf().canvas.mpl_connect('pick_event', onpick)
 plt.grid()
 plt.show()
