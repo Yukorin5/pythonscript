@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from pprint import pprint
@@ -118,24 +119,33 @@ class ActiveRegion:
 
     def integrated_area(self, time_begin=None, time_end=None):
         # in units of millionths of solar hemisphere times day
+        if time_begin is None:
+            time_begin = self.time_begin()
+        if time_end is None:
+            time_end = self.time_end()
 
         ret = 0
         for t, a in self.area_history.items():
-            if time_begin is not None and t < time_begin:
+            if t < time_begin:
                 continue
-            if time_end is not None and t > time_end:
+            if t > time_end:
                 continue
             ret += a
         return ret
 
     def integrated_flare(self, time_begin=None, time_end=None):
         # in units of C-class flare equivalent counts
+        if time_begin is None:
+            time_begin = self.time_begin()
+        if time_end is None:
+            time_end = self.time_end()
+
         ret = 0
         for f in self.flares:
             t = f.datetime
-            if time_begin is not None and t < time_begin:
+            if t < time_begin:
                 continue
-            if time_end is not None and t > time_end:
+            if t > time_end:
                 continue
             ret += f.peak_flux
         return ret * 1e6
@@ -148,11 +158,11 @@ class ActiveRegion:
 
     def plot_color_by_magnetic_class_history(self):
         for c in self.magnetic_classes:
-            if "D" in c:
-                return "red"
-        for c in self.magnetic_classes:
             if "G" in c:
                 return "yellow"
+        for c in self.magnetic_classes:
+            if "D" in c:
+                return "red"
         for c in self.magnetic_classes:
             if "B" in c:
                 return "lime"
@@ -167,6 +177,22 @@ class ActiveRegion:
         if "B" in c:
             return "lime"
         return "blue"
+
+    def plot_color_by_magnetic_class_blend(self):
+        r=0
+        g=0
+        b=0
+        n=0.01
+        for c,n2 in self.magnetic_class_count.items():
+            n+=n2
+            if "D" in c:
+                r+=n2
+            if "G" in c:
+                g+=n2
+            if "B" in c:
+                b+=n2
+        ret = matplotlib.colors.rgb2hex((min(1,30*r/n),min(1,6*g/n),b/n))
+        return ret
 
 
     def plot_color_by_flare_class(self):

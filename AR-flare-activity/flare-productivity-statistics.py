@@ -41,8 +41,9 @@ ys = [ar.integrated_flare() / ar.age_in_days() for ar in ar_list]
 sizes = [ar.plot_size()/2 for ar in ar_list]
 colors = [ar.plot_color_by_flare_class() for ar in ar_list]
 
-imaxes = plt.gcf().add_axes([0.2, 0.2, 0.7, 0.7])
-plt.axes(imaxes)
+# if the layout won't work
+# imaxes = plt.gcf().add_axes([0.2, 0.2, 0.7, 0.7])
+# plt.axes(imaxes)
 plt.gca().set_xscale("log")
 plt.gca().set_yscale("log")
 plt.gca().set_xlabel("AR area (uSH)")
@@ -50,6 +51,7 @@ plt.gca().set_ylabel("Flare rate (C-class flare/day)")
 plt.scatter(xs,ys,sizes, colors, picker=True)
 plt.gcf().canvas.mpl_connect('pick_event', onpick)
 plt.grid()
+plt.tight_layout()
 
 if interactive_mode:
     plt.show()
@@ -64,8 +66,6 @@ ys = [ar.integrated_flare() for ar in ar_list]
 sizes = [ar.plot_size()/2 for ar in ar_list]
 colors = [ar.plot_color_by_flare_class() for ar in ar_list]
 
-imaxes = plt.gcf().add_axes([0.2, 0.2, 0.7, 0.7])
-plt.axes(imaxes)
 plt.gca().set_xscale("log")
 plt.gca().set_yscale("log")
 plt.gca().set_xlabel("AR area (uSH day)")
@@ -73,6 +73,7 @@ plt.gca().set_ylabel("Flare count (C-class flare)")
 plt.scatter(xs,ys,sizes, colors, picker=True)
 plt.gcf().canvas.mpl_connect('pick_event', onpick)
 plt.grid()
+plt.tight_layout()
 
 if interactive_mode:
     plt.show()
@@ -82,12 +83,11 @@ else:
 plt.close("all")
 
 # Plot the AR's half productivity
-imaxes = plt.gcf().add_axes([0.2, 0.2, 0.7, 0.7])
-plt.axes(imaxes)
 xs = [half_productivity(ar,True) for ar in ar_list]
 ys = [half_productivity(ar,False) for ar in ar_list]
 sizes = [ar.plot_size() for ar in ar_list]
-colors = [ar.plot_color() for ar in ar_list]
+colors = [ar.plot_color_by_magnetic_class_history() for ar in ar_list]
+
 plt.gca().set_xscale("log")
 plt.gca().set_yscale("log")
 plt.gca().set_xlabel("First-half flare productivity\n(C-class flare/uSH/day)")
@@ -95,6 +95,7 @@ plt.gca().set_ylabel("Second-half flare productivity\n(C-class flare/uSH/day)")
 plt.scatter(xs,ys,sizes, colors, picker=True)
 plt.gcf().canvas.mpl_connect('pick_event', onpick)
 plt.grid()
+plt.tight_layout()
 
 if interactive_mode:
     plt.show()
