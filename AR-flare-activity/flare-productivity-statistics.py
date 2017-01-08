@@ -110,7 +110,7 @@ class ActiveRegion:
         return 20+4*len(self.flares)
 
     def plot_color(self):
-        return self.plot_color_by_magnetic_class_majority()
+        return self.plot_color_by_magnetic_class_history()
 
     def plot_color_by_magnetic_class_history(self):
         for c in self.magnetic_classes:
@@ -140,18 +140,26 @@ class ActiveRegion:
         if biggest >= 1e-4:
             return "red"
         elif biggest >= 1e-5:
-            return "green"
+            return "lime"
         else:
             return "blue"
 
 
-region_data = read_solar_region_report("usaf_solar-region-reports_2014.txt")
+region_data = []
+flare_data = []
+
+for y in range(2010, 2016):
+    print("loading region",y)
+    region_data += read_solar_region_report("usaf_solar-region-reports_{}.txt".format(y))
+    print("loading flare",y)
+    flare_data += read_goes_xrs_report("goes-xrs-report_{}.txt".format(y))
+
 
 # # debug print the region data read
 # for r in region_data:
 #     pprint(vars(r))
 
-flare_data = read_goes_xrs_report("goes-xrs-report_2014.txt")
+
 
 # # debug print the region data read
 # for r in flare_data:
@@ -178,13 +186,13 @@ for noaa_arno, data in data_by_arno.items():
 #     pprint(vars(ar))
 
 for f in flare_data:
-    if f.noaa_arno is not None:
+    if f.noaa_arno is not None and f.noaa_arno in ar_data:
         ar_data[f.noaa_arno].flares.append(f)
 
 ar_list = [ar for _,ar in sorted(ar_data.items()) if ar.total_area()>0 and ar.total_flare() > 0]
 
 xs = [ar.total_area() for ar in ar_list]
-ys = [ar.total_flare() for ar in ar_list]
+ys = [ar.total_flare()/ ar.total_area() for ar in ar_list]
 sizes = [ar.plot_size() for ar in ar_list]
 colors = [ar.plot_color() for ar in ar_list]
 plt.gca().set_xscale("log")
@@ -203,6 +211,7 @@ def onpick(event):
         print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.total_area(), "flare:", ar.total_flare())
         print(ar.magnetic_class_count)
 
-plt.gcf().canvas.mpl_connect('pick_event', onpick)
 
+plt.gcf().canvas.mpl_connect('pick_event', onpick)
+plt.grid()
 plt.show()
