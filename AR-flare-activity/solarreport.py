@@ -179,89 +179,38 @@ class ActiveRegion:
             return "blue"
 
 
-region_data = []
-flare_data = []
+def read_active_region_data(year_begin, year_end):
+    region_data = []
+    flare_data = []
 
-# read the AR and flare observational data
-for y in range(2010, 2016):
-    century_year = int(y/100)*100
-    print("loading region", y)
-    region_data += read_solar_region_report(century_year, "usaf_solar-region-reports_{}.txt".format(y))
-    print("loading flare", y)
-    flare_data += read_goes_xrs_report(century_year, "goes-xrs-report_{}.txt".format(y))
+    # read the AR and flare observational data
+    for y in range(year_begin, year_end):
+        century_year = int(y/100)*100
+        print("loading region", y)
+        region_data += read_solar_region_report(century_year, "data/usaf_solar-region-reports_{}.txt".format(y))
+        print("loading flare", y)
+        flare_data += read_goes_xrs_report(century_year, "data/goes-xrs-report_{}.txt".format(y))
 
-# Sort the AR observation data and create `ar_data`,
-# which is the hash fron NOAA_ARNO to ActiveRegion
-data_by_arno = {}
-for r in region_data:
-    noaa_arno = r.noaa_arno
-    if noaa_arno is None:
-        continue
-    if noaa_arno in data_by_arno:
-        data_by_arno[noaa_arno].append(r)
-    else:
-        data_by_arno[noaa_arno] = [r]
+    # Sort the AR observation data and create `ar_data`,
+    # which is the hash fron NOAA_ARNO to ActiveRegion
+    data_by_arno = {}
+    for r in region_data:
+        noaa_arno = r.noaa_arno
+        if noaa_arno is None:
+            continue
+        if noaa_arno in data_by_arno:
+            data_by_arno[noaa_arno].append(r)
+        else:
+            data_by_arno[noaa_arno] = [r]
 
-ar_data = {}
-for noaa_arno, data in data_by_arno.items():
-    ar_data[noaa_arno] = ActiveRegion(noaa_arno, data)
+    ar_data = {}
+    for noaa_arno, data in data_by_arno.items():
+        ar_data[noaa_arno] = ActiveRegion(noaa_arno, data)
 
-# Append the observational data to their associated
-# active region
-for f in flare_data:
-    if f.noaa_arno is not None and f.noaa_arno in ar_data:
-        ar_data[f.noaa_arno].flares.append(f)
+    # Append the flare data to their associated
+    # active region
+    for f in flare_data:
+        if f.noaa_arno is not None and f.noaa_arno in ar_data:
+            ar_data[f.noaa_arno].flares.append(f)
 
-ar_list = [ar for _,ar in sorted(ar_data.items()) if ar.integrated_area()>0 and ar.integrated_flare() > 0]
-
-
-# Utility function for computing productivity for AR's half life
-def half_productivity(ar, zenhan):
-    dt = ar.time_end() - ar.time_begin()
-    if zenhan:
-        t0 = ar.time_begin()
-        t1 = ar.time_begin() + dt/2
-    else:
-        t0 = ar.time_begin() + dt/2
-        t1 = ar.time_end()
-    ret = ar.integrated_flare(t0, t1) / ar.integrated_area(t0, t1)
-    return max(1e-5, ret)
-
-# Utility function for picking data
-def onpick(event):
-    for i in event.ind:
-        ar = ar_list[i]
-        print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.integrated_area(), "flare:", ar.integrated_flare())
-        print(ar.magnetic_class_count)
-        print(",".join([f.class_string for f in ar.flares]))
-
-
-# Plot the ARs' area and flare
-xs = [ar.integrated_area() / ar.age_in_days() for ar in ar_list]
-ys = [ar.integrated_flare() / ar.age_in_days() for ar in ar_list]
-sizes = [ar.plot_size() for ar in ar_list]
-colors = [ar.plot_color() for ar in ar_list]
-plt.gca().set_xscale("log")
-plt.gca().set_yscale("log")
-plt.gca().set_xlabel("AR area in uSH")
-plt.gca().set_ylabel("Flare score (C-class flare/day)")
-plt.scatter(xs,ys,sizes, colors, picker=True)
-plt.gcf().canvas.mpl_connect('pick_event', onpick)
-plt.grid()
-plt.show()
-
-plt.close("all")
-
-# Plot the AR's half productivity
-xs = [half_productivity(ar,True) for ar in ar_list]
-ys = [half_productivity(ar,False) for ar in ar_list]
-sizes = [ar.plot_size() for ar in ar_list]
-colors = [ar.plot_color() for ar in ar_list]
-plt.gca().set_xscale("log")
-plt.gca().set_yscale("log")
-plt.gca().set_xlabel("First-half flare productivity (C-class flare/uSH/day)")
-plt.gca().set_ylabel("Second-half flare productivity (C-class flare/uSH/day)")
-plt.scatter(xs,ys,sizes, colors, picker=True)
-plt.gcf().canvas.mpl_connect('pick_event', onpick)
-plt.grid()
-plt.show()
+    return ar_data
