@@ -41,9 +41,6 @@ ys = [ar.integrated_flare() / ar.age_in_days() for ar in ar_list]
 sizes = [ar.plot_size()/2 for ar in ar_list]
 colors = [ar.plot_color_by_flare_class() for ar in ar_list]
 
-# if the layout won't work
-# imaxes = plt.gcf().add_axes([0.2, 0.2, 0.7, 0.7])
-# plt.axes(imaxes)
 plt.gca().set_xscale("log")
 plt.gca().set_yscale("log")
 plt.gca().set_xlabel("AR area (uSH)")
@@ -81,6 +78,54 @@ else:
     plt.savefig("figure/volume_vs_flares.pdf",format="pdf")
 
 plt.close("all")
+
+# Plot the ARs' productivity and area
+xs = [ar.integrated_area() / ar.age_in_days() for ar in ar_list]
+ys = [ar.integrated_flare() / ar.integrated_area() for ar in ar_list]
+sizes = [ar.plot_size()/2 for ar in ar_list]
+colors = [ar.plot_color_by_flare_class() for ar in ar_list]
+
+plt.gca().set_xscale("log")
+plt.gca().set_yscale("log")
+plt.gca().set_xlabel("AR area (uSH)")
+plt.gca().set_ylabel("Flare productivity\n(C-class flare/uSH/day)")
+plt.scatter(xs,ys,sizes, colors, picker=True)
+plt.gcf().canvas.mpl_connect('pick_event', onpick)
+plt.grid()
+plt.tight_layout()
+
+if interactive_mode:
+    plt.show()
+else:
+    plt.savefig("figure/area_vs_productivity.pdf",format="pdf")
+
+plt.close("all")
+
+
+# Plot the ARs' productivity and being specific class
+for c_letter in "ABGD":
+    xs = [ar.magnetic_class_fraction(c_letter) for ar in ar_list]
+    ys = [ar.integrated_flare() / ar.integrated_area() for ar in ar_list]
+    sizes = [ar.plot_size()/2 for ar in ar_list]
+    colors = [ar.plot_color_by_flare_class() for ar in ar_list]
+
+    plt.gca().set_xscale("linear")
+    plt.xlim([-0.01,1])
+    plt.gca().set_yscale("log")
+    plt.gca().set_xlabel("The class({}) fraction".format(c_letter))
+    plt.gca().set_ylabel("Flare productivity\n(C-class flare/uSH/day)")
+    plt.scatter(xs,ys,sizes, colors, picker=True)
+    plt.gcf().canvas.mpl_connect('pick_event', onpick)
+    plt.grid()
+    plt.tight_layout()
+
+    if interactive_mode:
+        plt.show()
+    else:
+        plt.savefig("figure/class_{}_fraction_vs_productivity.pdf".format(c_letter),format="pdf")
+
+    plt.close("all")
+
 
 # Plot the AR's half productivity
 xs = [half_productivity(ar,True) for ar in ar_list]

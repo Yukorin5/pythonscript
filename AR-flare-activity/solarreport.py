@@ -150,6 +150,15 @@ class ActiveRegion:
             ret += f.peak_flux
         return ret * 1e6
 
+    def magnetic_class_fraction(self, c0):
+        num = 0
+        den = 1e-16
+        for c,n2 in self.magnetic_class_count.items():
+            den += n2
+            if c0 in c:
+                num += n2
+        return num/den
+
     def plot_size(self):
         return 20+4*len(self.flares)
 
