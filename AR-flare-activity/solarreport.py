@@ -9,6 +9,10 @@ from pprint import pprint
 
 class SolarRegionData:
     def __init__(self, century_year, l):
+        if len(l) < 50:
+            self.noaa_arno = None
+            return
+
         t_year = century_year + int(l[2:4])
         t_month = int(l[4:6])
         t_day = int(l[6:8])
@@ -38,6 +42,11 @@ def read_solar_region_report(century_year, fn):
 
 class GoesFlareData:
     def __init__(self, century_year, l):
+        if len(l) < 80:
+            self.noaa_arno = None
+            return
+
+
         t_year = century_year + int(l[5:7])
         t_month = int(l[7:9])
         t_day = int(l[9:11])
@@ -133,7 +142,7 @@ class ActiveRegion:
             ret += a
         return ret
 
-    def integrated_flare(self, time_begin=None, time_end=None):
+    def integrated_flare(self, mode, time_begin=None, time_end=None):
         # in units of C-class flare equivalent counts
         if time_begin is None:
             time_begin = self.time_begin()
@@ -147,8 +156,19 @@ class ActiveRegion:
                 continue
             if t > time_end:
                 continue
-            ret += f.peak_flux
-        return ret * 1e6
+            if mode == "qc":
+                if f.peak_flux >= 1e-6:
+                    ret += f.peak_flux * 1e6
+            elif mode == "qm":
+                if f.peak_flux >= 1e-5:
+                    ret += f.peak_flux * 1e6
+            elif mode == "nc":
+                if f.peak_flux >= 1e-6:
+                    ret += 1
+            elif mode == "nm":
+                if f.peak_flux >= 1e-5:
+                    ret += 1
+        return ret
 
     def magnetic_class_fraction(self, c0):
         num = 0
@@ -160,7 +180,7 @@ class ActiveRegion:
         return num/den
 
     def plot_size(self):
-        return 20+4*len(self.flares)
+        return 10+8*len(self.flares)
 
     def plot_color(self):
         return self.plot_color_by_magnetic_class_history()
