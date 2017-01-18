@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import csv
 import argparse
 import datetime
 import matplotlib.pyplot as plt
@@ -23,6 +24,21 @@ args = argparser.parse_args()
 
 ar_data = read_active_region_data(2010, 2016)
 
+noaa_arno_to_harpnum_hash = {}
+
+with open('data/all_harps_with_noaa_ars.csv', 'r') as f:
+    reader = csv.reader(f)
+    header = next(reader)  # ヘッダーを読み飛ばしたい時
+
+    for row in reader:
+        h = int(row[0])
+        for n in row[1:]:
+            noaa_arno_to_harpnum_hash[int(n)] = h
+
+def noaa_arno_to_harpnum(n):
+    if n not in noaa_arno_to_harpnum_hash:
+        return None
+    return noaa_arno_to_harpnum_hash[n]
 
 # Utility function for computing productivity for AR's half life
 def half_productivity(ar, productivity_mode, zenhan):
@@ -163,7 +179,12 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     def onpick2(event):
         for i in event.ind:
             ar = ar_list2[i]
-            print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.integrated_area(), "flare:", ar.integrated_flare(productivity_mode))
+
+            print(
+                'HARPNUM', noaa_arno_to_harpnum(ar.noaa_arno),
+                'NOAA_ARNO:', ar.noaa_arno,
+                "area:", ar.integrated_area(),
+                "flare:", ar.integrated_flare(productivity_mode))
             print(ar.magnetic_class_count)
             print(",".join([f.class_string for f in ar.flares]))
 
@@ -181,3 +202,7 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     else:
         plt.savefig("figure/{}-productivity_fist_vs_second.pdf".format(productivity_mode),format="pdf")
     plt.close("all")
+
+    for ar in ar_list2:
+        if ar.plot_color_by_flare_class() == "red":
+            print(noaa_arno_to_harpnum(ar.noaa_arno))
