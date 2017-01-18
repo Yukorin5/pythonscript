@@ -69,7 +69,7 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     plt.grid()
     plt.tight_layout()
 
-    if interactive_mode:
+    if interactive_mode and "area-flarerate" in args.mode:
         plt.show()
     else:
         plt.savefig("figure/{}-area_vs_flareperday.pdf".format(productivity_mode),format="pdf")
@@ -91,7 +91,7 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     plt.grid()
     plt.tight_layout()
 
-    if interactive_mode:
+    if interactive_mode and "volume-flare" in args.mode:
         plt.show()
     else:
         plt.savefig("figure/{}-volume_vs_flares.pdf".format(productivity_mode),format="pdf")
@@ -113,7 +113,7 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     plt.grid()
     plt.tight_layout()
 
-    if interactive_mode:
+    if interactive_mode and "area-productivity" in args.mode:
         plt.show()
     else:
         plt.savefig("figure/{}-area_vs_productivity.pdf".format(productivity_mode),format="pdf")
@@ -138,7 +138,7 @@ for productivity_mode in ["nc","nm","qc","qm"]:
         plt.grid()
         plt.tight_layout()
 
-        if interactive_mode:
+        if interactive_mode and c_letter in args.mode:
             plt.show()
         else:
             plt.savefig("figure/{}-class_{}_fraction_vs_productivity.pdf".format(productivity_mode,c_letter),format="pdf")
@@ -168,7 +168,7 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     plt.grid()
     plt.tight_layout()
 
-    if interactive_mode:
+    if interactive_mode and "first-second" in args.mode:
         plt.show()
     else:
         plt.savefig("figure/{}-productivity_fist_vs_second.pdf".format(productivity_mode),format="pdf")
