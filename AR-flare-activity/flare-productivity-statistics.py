@@ -160,13 +160,19 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     colors = [ar.plot_color_by_flare_class() for ar in ar_list2]
 
 
+    def onpick2(event):
+        for i in event.ind:
+            ar = ar_list2[i]
+            print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.integrated_area(), "flare:", ar.integrated_flare(productivity_mode))
+            print(ar.magnetic_class_count)
+            print(",".join([f.class_string for f in ar.flares]))
 
     plt.gca().set_xscale("log")
     plt.gca().set_yscale("log")
     plt.gca().set_xlabel("First-half flare productivity\n(C-class flare/uSH/day)")
     plt.gca().set_ylabel("Second-half flare productivity\n(C-class flare/uSH/day)")
     plt.scatter(xs,ys,sizes, colors, picker=True)
-    plt.gcf().canvas.mpl_connect('pick_event', onpick)
+    plt.gcf().canvas.mpl_connect('pick_event', onpick2)
     plt.grid()
     plt.tight_layout()
 
