@@ -1,11 +1,25 @@
 #!/usr/bin/env python3
 
+import argparse
 import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 from pprint import pprint
 from solarreport import read_active_region_data
 
+argparser = argparse.ArgumentParser(description='Analyze active region statistics')
+argparser.add_argument("mode",
+                       action='store',
+                       type=str,
+                       nargs='*',
+                       help='{nc|nm|qc|qm}')
+
+argparser.add_argument('--interactive',
+    action='store_true',
+    default=False,
+    help='Perform interactive analysis')
+
+args = argparser.parse_args()
 
 ar_data = read_active_region_data(2010, 2016)
 
@@ -30,9 +44,12 @@ def onpick(event):
         print(ar.magnetic_class_count)
         print(",".join([f.class_string for f in ar.flares]))
 
-interactive_mode = False
+interactive_mode = args.interactive
 
 for productivity_mode in ["nc","nm","qc","qm"]:
+    if interactive_mode and productivity_mode not in args.mode:
+        continue
+
     ar_list = [ar for _,ar in sorted(ar_data.items()) if ar.integrated_area()>0 and ar.integrated_flare(productivity_mode) > 0]
 
     plt.rcParams["font.size"] = 24
