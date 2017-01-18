@@ -36,17 +36,19 @@ def half_productivity(ar, productivity_mode, zenhan):
     ret = ar.integrated_flare(productivity_mode, t0, t1) / ar.integrated_area(t0, t1)
     return max(1e-5, ret)
 
-# Utility function for picking data
-def onpick(event):
-    for i in event.ind:
-        ar = ar_list[i]
-        print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.integrated_area(), "flare:", ar.integrated_flare())
-        print(ar.magnetic_class_count)
-        print(",".join([f.class_string for f in ar.flares]))
 
 interactive_mode = args.interactive
 
 for productivity_mode in ["nc","nm","qc","qm"]:
+    # Utility function for picking data
+    def onpick(event):
+        for i in event.ind:
+            ar = ar_list[i]
+            print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.integrated_area(), "flare:", ar.integrated_flare(productivity_mode))
+            print(ar.magnetic_class_count)
+            print(",".join([f.class_string for f in ar.flares]))
+
+
     if interactive_mode and productivity_mode not in args.mode:
         continue
 
