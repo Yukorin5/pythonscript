@@ -19,7 +19,11 @@ harp_num = int(sys.argv[1])
 wavelengths=[94,193,1600]
 channels=["hmi"]+wavelengths
 ufcorin_bigdata_path = os.environ.get("ufcorin_bigdata_path")
-pylab.rcParams['figure.figsize']=(16.0, 9.0)
+plt.rcParams['figure.figsize']=(16.0, 9.0)
+
+def name_of_channel(c):
+    if c=="hmi": return "hmi"
+    return "aia{:04}".format(c)
 
 def vmin_of_channel(c):
     if c=="hmi": return -300
@@ -27,7 +31,7 @@ def vmin_of_channel(c):
 
 def vmax_of_channel(c):
     if c=="hmi": return 300
-    if c==94: return 100
+    if c==94: return 30
     if c==193: return 3000
     if c==1600: return 200
     return None
@@ -99,5 +103,5 @@ for c in channels:
         plt.savefig(frame_fn)
         plt.close("all")
 
-    subprocess.call("ffmpeg -y -r 24 -i /scr/uframes/f%06d.png  -qscale 0 /work1/t2g-16IAS/harp-movie/{}-{}.mp4".format(c,harp_num),shell=True)
+    subprocess.call("ffmpeg -y -r 24 -i /scr/uframes/f%06d.png  -qscale 0 /work1/t2g-16IAS/harp-movie/harp-{}-{}.mp4".format(harp_num,name_of_channel(c)),shell=True)
 
