@@ -58,14 +58,19 @@ for c in channels:
     movie_path = "/scr/uframes/" # archive_path_of_channel(c) + "/frames/"
     subprocess.call("rm -rf " + movie_path, shell=True)
     subprocess.call("mkdir -p " + movie_path, shell=True)
-    image_idx = -1
     # path 0: determine the maximum frame size
     canvas_x = 0
     canvas_y = 0
 
     for frame in archive_index[c]:
         file_path = archive_path_of_channel(c) + frame["filename"]
-        subdata = np.load(file_path)["img"]
+        try:
+            subdata = np.load(file_path)["img"]
+        except:
+            print sys.exc_info()
+            print "file broken: ", file_path
+            continue
+
         ssx, ssy = subdata.shape
         print 'The dimensions of this image are',ssx," by ",ssy,'.'
         canvas_x = max(canvas_x, ssx)
@@ -74,13 +79,18 @@ for c in channels:
 
     # path 1: render the frames
     canvas=np.ndarray((canvas_x,canvas_y))
+    image_idx = 0
     for frame in archive_index[c]:
         
         print c, image_idx
-        image_idx += 1
         file_path = archive_path_of_channel(c) + frame["filename"]
-
-        subdata = np.load(file_path)["img"]
+        
+        try:
+            subdata = np.load(file_path)["img"]
+        except:
+            print sys.exc_info()
+            print "file broken: ", file_path
+            continue
 
         canvas[:,:] = 0
         ssx, ssy = subdata.shape
@@ -102,6 +112,11 @@ for c in channels:
         print frame_fn
         plt.savefig(frame_fn)
         plt.close("all")
+
+        image_idx += 1
+        """
+        End of the loop for creating movie frames.
+        """
 
     subprocess.call("ffmpeg -y -r 24 -i /scr/uframes/f%06d.png  -qscale 0 /work1/t2g-16IAS/harp-movie/harp-{}-{}.mp4".format(harp_num,name_of_channel(c)),shell=True)
 
