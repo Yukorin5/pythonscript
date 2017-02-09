@@ -60,7 +60,12 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     def onpick(event):
         for i in event.ind:
             ar = ar_list[i]
-            print('NOAA_ARNO:', ar.noaa_arno, "area:", ar.integrated_area(), "flare:", ar.integrated_flare(productivity_mode))
+
+            print(
+                'HARPNUM', noaa_arno_to_harpnum(ar.noaa_arno),
+                'NOAA_ARNO:', ar.noaa_arno,
+                "area:", ar.integrated_area(),
+                "flare:", ar.integrated_flare(productivity_mode))
             print(ar.magnetic_class_count)
             print(",".join([f.class_string for f in ar.flares]))
 
@@ -69,6 +74,11 @@ for productivity_mode in ["nc","nm","qc","qm"]:
         continue
 
     ar_list = [ar for _,ar in sorted(ar_data.items()) if ar.integrated_area()>0 and ar.integrated_flare(productivity_mode) > 0]
+
+    def get_biggest(ar):
+        return max([0] + [f.peak_flux for f in ar.flares])
+
+    ar_list = sorted(ar_list, key = get_biggest)
 
     plt.rcParams["font.size"] = 24
 
@@ -165,35 +175,19 @@ for productivity_mode in ["nc","nm","qc","qm"]:
 
 
     # Plot the AR's half productivity
-    def get_biggest(ar):
-        return max([0] + [f.peak_flux for f in ar.flares])
-
-    ar_list2 = sorted(ar_list, key = get_biggest)
-
-    xs = [half_productivity(ar,productivity_mode,True) for ar in ar_list2]
-    ys = [half_productivity(ar,productivity_mode,False) for ar in ar_list2]
-    sizes = [ar.plot_size() for ar in ar_list2]
-    colors = [ar.plot_color_by_flare_class() for ar in ar_list2]
+    xs = [half_productivity(ar,productivity_mode,True) for ar in ar_list]
+    ys = [half_productivity(ar,productivity_mode,False) for ar in ar_list]
+    sizes = [ar.plot_size() for ar in ar_list]
+    colors = [ar.plot_color_by_flare_class() for ar in ar_list]
 
 
-    def onpick2(event):
-        for i in event.ind:
-            ar = ar_list2[i]
-
-            print(
-                'HARPNUM', noaa_arno_to_harpnum(ar.noaa_arno),
-                'NOAA_ARNO:', ar.noaa_arno,
-                "area:", ar.integrated_area(),
-                "flare:", ar.integrated_flare(productivity_mode))
-            print(ar.magnetic_class_count)
-            print(",".join([f.class_string for f in ar.flares]))
 
     plt.gca().set_xscale("log")
     plt.gca().set_yscale("log")
     plt.gca().set_xlabel("First-half flare productivity\n(C-class flare/uSH/day)")
     plt.gca().set_ylabel("Second-half flare productivity\n(C-class flare/uSH/day)")
     plt.scatter(xs,ys,sizes, colors, picker=True)
-    plt.gcf().canvas.mpl_connect('pick_event', onpick2)
+    plt.gcf().canvas.mpl_connect('pick_event', onpick)
     plt.grid()
     plt.tight_layout()
 
@@ -202,7 +196,3 @@ for productivity_mode in ["nc","nm","qc","qm"]:
     else:
         plt.savefig("figure/{}-productivity_fist_vs_second.pdf".format(productivity_mode),format="pdf")
     plt.close("all")
-
-    for ar in ar_list2:
-        if ar.plot_color_by_flare_class() == "red":
-            print(noaa_arno_to_harpnum(ar.noaa_arno))
