@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import astropy.time as time
-import calendar, datetime, os, re, requests, subprocess,urllib, sys, StringIO
+import datetime
 import numpy as np
 from astropy.io import fits
-
+import sunpy.map
+from sunpy.cm import color_tables as ct
+import sunpy.wcs as wcs
 
 global goes_raw_data_fast
 goes_raw_data_fast = None
@@ -37,4 +39,29 @@ def goes_max(t, timedelta):
     return ret
 
 
+def get_sun_image(time, wavelength, image_size = 1023):
+    try:
+        filename = "/work1/t2g-16IAS/aia{:04}".format(wavelength) + time_str
+        chromosphere_image = fits.open(filename)
 
+        chromosphere_image.verify("fix")
+        exptime = chromosphere_image[1].header['EXPTIME']
+        if exptime <= 0:
+            return None
+
+        quality = aia_image[1].header['QUALITY']
+        if quality !=0:
+            return None
+
+        original_width = chromosphere_image[1].data.shape[0]
+        return interpolation.zoom(chromosphere_image[1].data, image_size / float(original_width)) / exptime
+    except Exception as e:
+        print(e)
+        return None
+
+def plot_sun_image(img, filename, wavelength, title = '', vmin=0.0, vmax = 1.0):
+    cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
+    plt.title(title)
+    plt.imshow(img,cmap=cmap,origin='lower',vmin=vmin, vmax=vmax)
+    plt.savefig(filename)
+    plt.close("all")
