@@ -24,13 +24,13 @@ argparser.add_argument('-x',
                        action='store',
                        type=str,
                        default="i-area",
-                       help='X axis component')
+                       help='X axis component {area|i-area|flare|i-flare|flare-1|flare-2}')
 
 argparser.add_argument('-y',
                        action='store',
                        type=str,
                        default="i-flare",
-                       help='Y axis component')
+                       help='Y axis component (options are the same as X-axis)')
 
 
 args = argparser.parse_args()
