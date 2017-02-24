@@ -68,7 +68,8 @@ def get_sun_image(time, wavelength, image_size = 1023):
             return None
 
         original_width = aia_image[1].data.shape[0]
-        return interpolation.zoom(aia_image[1].data, image_size / float(original_width)) / exptime
+
+        return interpolation.zoom(np.nan_to_num(aia_image[1].data), image_size / float(original_width)) / exptime
     except Exception as e:
         print(e,file=sys.stderr)
         return None
