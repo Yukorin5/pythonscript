@@ -48,6 +48,8 @@ def get_sun_image(time, wavelength, image_size = 1023):
     try:
         time_str = time.strftime("%Y/%m/%d/%H%M.fits")
         filename = "/work1/t2g-16IAS/aia{:04}/".format(wavelength) + time_str
+        if wavelength == 'hmi':
+            filename = "/work1/t2g-16IAS/hmi/" + time_str
         aia_image = fits.open(filename)
 
         aia_image.verify("fix")
@@ -68,7 +70,10 @@ def get_sun_image(time, wavelength, image_size = 1023):
         return None
 
 def plot_sun_image(img, filename, wavelength, title = '', vmin=0.0, vmax = 1.0):
-    cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
+    if wavelength == 'hmi':
+        cmap = plt.get_cmap('hmimag')
+    else:
+        cmap = plt.get_cmap('sdoaia{}'.format(wavelength))
     plt.title(title)
     plt.imshow(img,cmap=cmap,origin='lower',vmin=vmin, vmax=vmax)
     plt.savefig(filename)
