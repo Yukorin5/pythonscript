@@ -47,16 +47,20 @@ def goes_max(t, timedelta):
 def get_sun_image(time, wavelength, image_size = 1023):
     try:
         time_str = time.strftime("%Y/%m/%d/%H%M.fits")
-        filename = "/work1/t2g-16IAS/aia{:04}/".format(wavelength) + time_str
         if wavelength == 'hmi':
             filename = "/work1/t2g-16IAS/hmi/" + time_str
+        else:
+            filename = "/work1/t2g-16IAS/aia{:04}/".format(wavelength) + time_str
         aia_image = fits.open(filename)
 
         aia_image.verify("fix")
-        exptime = aia_image[1].header['EXPTIME']
-        if exptime <= 0:
-            print(time, "non-positive exposure",file=sys.stderr)
-            return None
+        if wavelength == 'hmi':
+            exptime = 1
+        else:
+            exptime = aia_image[1].header['EXPTIME']
+            if exptime <= 0:
+                print(time, "non-positive exposure",file=sys.stderr)
+                return None
 
         quality = aia_image[1].header['QUALITY']
         if quality !=0:
