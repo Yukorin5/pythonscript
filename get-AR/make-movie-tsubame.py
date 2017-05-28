@@ -62,7 +62,7 @@ for c in channels:
         movie_path = "/scr/uframes/" # archive_path_of_channel(c) + "/frames/"
     else:
         movie_path = "/tmp/uframes/"  # archive_path_of_channel(c) + "/frames/"
-    subprocess.call("rm -rf " + movie_path, shell=True)
+    ### debug subprocess.call("rm -rf " + movie_path, shell=True)
     subprocess.call("mkdir -p " + movie_path, shell=True)
     # path 0: determine the maximum frame size
     canvas_x = 0
@@ -82,6 +82,9 @@ for c in channels:
         canvas_x = max(canvas_x, ssx)
         canvas_y = max(canvas_y, ssy)
 
+    cmd = "ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -q:v 0 {}/harp-movie/harp-{}-{}.mp4".format(movie_path,ufcorin_bigdata_path,name_of_channel(c))
+    subprocess.call(cmd)
+    exit()
 
     # path 1: render the frames
     canvas=np.ndarray((canvas_x,canvas_y))
@@ -123,6 +126,7 @@ for c in channels:
         """
         End of the loop for creating movie frames.
         """
-
-    subprocess.call("ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -qscale 0 /work1/t2g-16IAS/harp-movie/harp-{}-{}.mp4".format(movie_path,harp_num,name_of_channel(c)),shell=True)
+    cmd = "ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -q:v 0 {}/harp-movie/harp-{}-{}.mp4".format(movie_path,ufcorin_bigdata_path,name_of_channel(c))
+    subprocess.call(cmd,shell=True)
+    #subprocess.call("ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -qscale 0 /work1/t2g-16IAS/harp-movie/harp-{}-{}.mp4".format(movie_path,harp_num,name_of_channel(c)),shell=True)
 
