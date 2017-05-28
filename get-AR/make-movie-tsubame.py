@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 import matplotlib
 matplotlib.use('Agg')
@@ -18,6 +18,9 @@ import os
 harp_num = int(sys.argv[1])
 wavelengths=[94,193,1600]
 channels=["hmi"]+wavelengths
+
+channels= [193] # Test only 193
+
 ufcorin_bigdata_path = os.environ.get("ufcorin_bigdata_path")
 plt.rcParams['figure.figsize']=(16.0, 9.0)
 
@@ -55,7 +58,10 @@ for c in channels:
 
 
 for c in channels:
-    movie_path = "/scr/uframes/" # archive_path_of_channel(c) + "/frames/"
+    if "/work1/t2g" in ufcorin_bigdata_path:
+        movie_path = "/scr/uframes/" # archive_path_of_channel(c) + "/frames/"
+    else:
+        movie_path = "/tmp/uframes/"  # archive_path_of_channel(c) + "/frames/"
     subprocess.call("rm -rf " + movie_path, shell=True)
     subprocess.call("mkdir -p " + movie_path, shell=True)
     # path 0: determine the maximum frame size
@@ -72,7 +78,7 @@ for c in channels:
             continue
 
         ssx, ssy = subdata.shape
-        print 'The dimensions of this image are',ssx," by ",ssy,'.'
+        # print 'The dimensions of this image are',ssx," by ",ssy,'.'
         canvas_x = max(canvas_x, ssx)
         canvas_y = max(canvas_y, ssy)
 
@@ -118,5 +124,5 @@ for c in channels:
         End of the loop for creating movie frames.
         """
 
-    subprocess.call("ffmpeg -y -r 24 -i /scr/uframes/f%06d.png  -qscale 0 /work1/t2g-16IAS/harp-movie/harp-{}-{}.mp4".format(harp_num,name_of_channel(c)),shell=True)
+    subprocess.call("ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -qscale 0 /work1/t2g-16IAS/harp-movie/harp-{}-{}.mp4".format(movie_path,harp_num,name_of_channel(c)),shell=True)
 
