@@ -8,23 +8,47 @@ import numpy as np
 from pprint import pprint
 from solarreport import read_active_region_data
 
-argparser = argparse.ArgumentParser(description='Analyze active region statistics')
+plt.rcParams['font.family'] = 'System Font'
+
+
+class SmartFormatter(argparse.HelpFormatter):
+
+    def _split_lines(self, text, width):
+        if text.startswith('R|'):
+            return text[2:].splitlines()
+        # this is the RawTextHelpFormatter._split_lines
+        return argparse.HelpFormatter._split_lines(self, text, width)
+
+argparser = argparse.ArgumentParser(description='Analyze active region statistics', formatter_class=SmartFormatter)
 argparser.add_argument("--productivity-mode",
                        action='store',
                        type=str,
                        default="qc",
-                       help='{nc|nm|qc|qm}')
+                       help='R|{nc|nm|qc|qm}'+"""
+nc : number of >= C class flares  
+nm : number of >= M class flares
+qc : sum of peak flux of >= C class flares
+qm : sum of peak flux of >= M class flares
+                       """)
 
-argparser.add_argument('--interactive',
+argparser.add_argument('--savefig',
     action='store_true',
     default=False,
-    help='Perform interactive analysis')
+    help='Save analyses to files')
 
 argparser.add_argument('-x',
                        action='store',
                        type=str,
                        default="i-area",
-                       help='X axis component {area|i-area|flare|i-flare|flare-1|flare-2}')
+                       help="""R|X axis component
+{area|i-area|flare|i-flare|flare-1|flare-2}
+area : area of active region (μSH)
+i-area : integrated area (μSH day)
+flare : Flare productivity (flares/day)
+i-flare : Flare count (flares)
+flare-1 : Flare productivity in the first half of its age
+flare-2 : Flare productivity in the second half of its age
+""")
 
 argparser.add_argument('-y',
                        action='store',
@@ -105,7 +129,7 @@ def make_plot(xaxis_tag, yaxis_tag, productivity_mode):
     )
     data_dict["i-area"] = Data(
         [ar.integrated_area() for ar in ar_list],
-        "AR area (uSH・day)"
+        'AR integrated area (uSH day)'
     )
     data_dict["flare"] = Data(
         [ar.integrated_flare(productivity_mode) / ar.age_in_days() for ar in ar_list],
@@ -113,7 +137,7 @@ def make_plot(xaxis_tag, yaxis_tag, productivity_mode):
     )
     data_dict["i-flare"] = Data(
         [ar.integrated_flare(productivity_mode) for ar in ar_list],
-        "Flare productivity ({} flares)".format(productivity_mode)
+        "Flare count ({} flares)".format(productivity_mode)
     )
     data_dict["flare-1"] = Data(
         [half_productivity(ar,productivity_mode,True) for ar in ar_list],
@@ -141,7 +165,7 @@ def make_plot(xaxis_tag, yaxis_tag, productivity_mode):
 
     fn_str = "-".join([xaxis_tag, yaxis_tag, productivity_mode])
 
-    if args.interactive:
+    if not args.savefig:
         plt.show()
     else:
         plt.savefig("figure/{}.pdf".format(fn_str),format="pdf")
@@ -153,5 +177,5 @@ def make_plot(xaxis_tag, yaxis_tag, productivity_mode):
 MAIN
 """
 
-if args.interactive:
+if not args.savefig:
     make_plot(args.x, args.y, args.productivity_mode)
