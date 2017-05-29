@@ -102,8 +102,8 @@ for c in channels:
 
         canvas[:,:] = 0
         ssx, ssy = subdata.shape
-        x = (canvas_x-ssx)/2
-        y = (canvas_y-ssy)/2
+        x = int((canvas_x-ssx)/2)
+        y = int((canvas_y-ssy)/2)
         canvas[x:x+ssx,y:y+ssy] = subdata
 
         if c=="hmi":
