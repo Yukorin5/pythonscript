@@ -55,7 +55,7 @@ archive_index = {}
 for c in channels:
     fn = archive_path_of_channel(c)+"index.pickle"
     print("loading",c,fn)
-    archive_index[c] = pickle.load(open(fn, 'rb'))
+    archive_index[c] = pickle.load(open(fn, 'rb'),fix_imports=True,encoding='bytes')
 
 
 for c in channels:
@@ -63,14 +63,14 @@ for c in channels:
         movie_path = "/scr/uframes/" # archive_path_of_channel(c) + "/frames/"
     else:
         movie_path = "/tmp/uframes/"  # archive_path_of_channel(c) + "/frames/"
-    ### debug subprocess.call("rm -rf " + movie_path, shell=True)
+    ### DEBUG subprocess.call("rm -rf " + movie_path, shell=True)
     subprocess.call("mkdir -p " + movie_path, shell=True)
     # path 0: determine the maximum frame size
     canvas_x = 0
     canvas_y = 0
 
     for frame in archive_index[c]:
-        file_path = archive_path_of_channel(c) + frame["filename"]
+        file_path = archive_path_of_channel(c) + frame[b'filename'].decode('utf-8')
         try:
             subdata = np.load(file_path)["img"]
         except:
@@ -79,22 +79,19 @@ for c in channels:
             continue
 
         ssx, ssy = subdata.shape
-        # print 'The dimensions of this image are',ssx," by ",ssy,'.'
+        print('Loading image', file_path , ' of size ',ssx," by ",ssy,'.')
         canvas_x = max(canvas_x, ssx)
         canvas_y = max(canvas_y, ssy)
 
-    cmd = "ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -q:v 0 {}/harp-movie/harp-{}-{}.mp4".format(movie_path,ufcorin_bigdata_path,name_of_channel(c))
-    subprocess.call(cmd)
-    exit()
 
     # path 1: render the frames
     canvas=np.ndarray((canvas_x,canvas_y))
     image_idx = 0
     for frame in archive_index[c]:
-        
+
         print(c, image_idx)
-        file_path = archive_path_of_channel(c) + frame["filename"]
-        
+        file_path = archive_path_of_channel(c) + frame[b"filename"].decode('utf-8')
+
         try:
             subdata = np.load(file_path)["img"]
         except:
@@ -116,7 +113,7 @@ for c in channels:
         imaxes = plt.gcf().add_axes([0.1, 0.1, 0.7, 0.8])
         plt.axes(imaxes)
         plt.imshow(canvas,cmap=sdoaia_cmap,origin='lower',vmin=vmin_of_channel(c),vmax=vmax_of_channel(c))
-        plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, c, frame["t"]))
+        plt.title("HARP AR{} AIA {} Angstrom {}".format(harp_num, c, frame[b"t"]))
         cbaxes = plt.gcf().add_axes([0.85, 0.1, 0.03, 0.8])
         plt.colorbar(cax=cbaxes)
         frame_fn = movie_path + "f{:06}.png".format(image_idx)
@@ -128,7 +125,7 @@ for c in channels:
         """
         End of the loop for creating movie frames.
         """
-    cmd = "ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -q:v 0 {}/harp-movie/harp-{}-{}.mp4".format(movie_path,ufcorin_bigdata_path,name_of_channel(c))
+    cmd = "ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -q:v 0 {}/harp-movie/harp-{}-{}.mp4".format(movie_path,ufcorin_bigdata_path,harp_num,name_of_channel(c))
+    print(cmd)
     subprocess.call(cmd,shell=True)
     #subprocess.call("ffmpeg -y -r 24 -i {}/f%06d.png  -pix_fmt yuv420p  -qscale 0 /work1/t2g-16IAS/harp-movie/harp-{}-{}.mp4".format(movie_path,harp_num,name_of_channel(c)),shell=True)
-
